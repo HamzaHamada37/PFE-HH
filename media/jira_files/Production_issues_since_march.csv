@@ -1,0 +1,951 @@
+;;;;;;;;;;;;;;
+Jira;;;;;;;;;;;;;;
+Displaying 75 issues at 20/May/25 11:46 AM.;;;;;;;;;;;;;;
+Issue Type;Key;Linked Issues;Priority;Summary;Status;Assignee;Creator;Created;Fix Version/s;Date of First Response;Resolved;Redeclared;Linked issue;Description
+Incident;OEKB-6890;;Major;M12 PROD - INTR00163407 - Breakdown Instructions not processed correctly;Pending;Emna EL MEKKI;Dalibor VIDIC;19/05/2025 08:49;;19/05/2025 08:59;;NO;;"Hello, 
+
+the client instructions (Breakdown Instruction) are not processed correctly by the system in the two INTR events below. 
+
+INTR00163407 - AT0000A2XML 
+
+Client 236500 => 17.420.000 
+
+Breakdown Instruction => 17.430.000 
+
+The instruction exceeds the actual client holding, so it should not be executed. 
+
+However, the instruction has been executed, although this is not visible under 'Client Entitlement'. 
+
+
+
+We have the same problem with ISIN AT0000A2XMN6 
+
+INTR00163408 - AT0000A2XMN6 
+
+Client 236500 => 40.941.000 
+
+Breakdown Instruction => 40.952.000 
+
+The instruction exceeds the actual client holding, so it should not be executed. 
+
+
+
+Please check this urgently\! 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6889;;Major;M12 PROD - DVCA0003218201 - List Market Entitlement;Pending;Emna EL MEKKI;Dalibor VIDIC;19/05/2025 08:10;;19/05/2025 08:39;;NO;;"Hello, 
+
+we have noticed that several market entitlements are displayed for the above DVCA event. 
+The calculated market entitlement of 170,233,686 is correct, but what are the other calculated entitlements (market claims entitlements?) 
+We have now cancelled them, but please urgently check why they are being displayed. 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6888;;Major;M12 PROD - List Client Payment - Different search results;Planned;Emna EL MEKKI;Dalibor VIDIC;16/05/2025 12:57;MR3_2025;16/05/2025 13:11;;NO;;"Hello, 
+
+if I search in the menu item ‘List Client Payment’ with an ISIN, only results with the status ‘Sent’ are shown. 
+However, if I search using a MainReference, results with other ‘statuses’ are also shown, e.g. with status ‘WaitingSettlementConfirmation’ etc. 
+
+
+
+Please check\! 
+
+
+
+Thank you and BR, Dali"
+Incident;OEKB-6885;OEKB-6798;Major;Full Load Position File per aod 15052025 processed after the job for the Entitlment Calculations;Fixed Delivered;Emna EL MEKKI;OEKB - Nikolay TSONKOV;16/05/2025 06:37;;16/05/2025 09:33;16/05/2025 09:33;NO;;"Dears , 
+
+last nicht the processing of the full load position file finished at 3:37 in the morning 
+
+
+
+i will proceed with recovery actions in the following way 
+
+check what was loaded in the system vs content of the full load position file 
+
+do entitlment calculations manually 
+
+run the following jobs in the following order 
+
+* Client Notification Generation 
+* Client notification Generation for Entitlment 
+* Send Notification 
+
+i will keep you updated 
+
+BR, 
+
+Niki"
+Incident;OEKB-6884;;Major;M12 PROD - DVCA0003215836 - incorrect Client Payment Status;Pending;Emna EL MEKKI;Dalibor VIDIC;15/05/2025 12:33;;15/05/2025 13:28;;NO;;"Hello, 
+
+four client payments in the DVCA Event mentioned above have the status 'WaitingSettlementConfirmation' or 'WaitingReleaseConfirmation', although the instructions are already settled in CCSYS. 
+
+Please check and correct the error so that we can send the confirmations to the clients. 
+
+
+
+Thank you and BR, Dali"
+Incident;OEKB-6883;;Major;M12 PROD - List Received MT564 CANC - Search Function;Planned;Emna EL MEKKI;Dalibor VIDIC;15/05/2025 11:06;MR3_2025;15/05/2025 11:24;;NO;;"Hello, 
+
+I have noticed that it is not possible to search using an ISIN under the above menu item. Results are only displayed if you click on 'Search' without entering an ISIN. 
+
+Please check and adapt. 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6882;OEKB-6798;Major;Full Position File aod 14.05.2025 processed too late in MegaCor;Fixed Delivered;Emna EL MEKKI;OEKB - Nikolay TSONKOV;15/05/2025 06:42;;15/05/2025 09:25;16/05/2025 09:33;NO;;"Good Morning the Full Load Position Interface aod 14.05.2025 finished on 15.05.2025 at 02:51 
+
+i will send a meeting for 08:15 so we can do checks together 
+
+
+
+BR, 
+
+Niki"
+Incident;OEKB-6879;;Medium;MEGACOR Flow out - ERROR;Planned;Emna EL MEKKI;OEKB - Lukasz Walczuk;14/05/2025 13:04;MR3_2025;14/05/2025 13:14;;NO;;"Hello, 
+
+we have received two Flow Out Errors. 
+
+
+
+Please check."
+Incident;OEKB-6878;OEKB-6798;Major;Position Delta File #1 per 14052025 not in M12;Fixed Delivered;Emna EL MEKKI;OEKB - Nikolay TSONKOV;14/05/2025 07:53;;14/05/2025 08:17;16/05/2025 09:32;NO;;"the position file delta #1 for 14-05-2025 not in the system 
+
+the file is delivered, there is nothing in the failed position 
+
+the device is working"
+Incident;OEKB-6877;;Major;M12 PROD - INTR00163325 - Breakdown Instruction;Pending;Thouraya BEN ABDALLAH;Dalibor VIDIC;13/05/2025 08:24;;13/05/2025 08:42;;NO;;"Hello, 
+
+In the above-mentioned INTR event there is a breakdown instruction (3.000.000 in Status executed) that was not taken into account by the system when calculating the entitlements. 
+
+For this reason, the event status is ‘waiting payment’ instead of ‘executed’. 
+
+
+
+Please check\! 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6875;;Major;Failed Positions--90 postions not in the system;Closed;Emna EL MEKKI;OEKB - Nikolay TSONKOV;09/05/2025 17:31;;09/05/2025 18:02;12/05/2025 12:12;NO;;"There is a list with 90 Positions which are not system 
+
+attached is the extraction in the second sheet is shown only unique isins 
+
+the ones marked in red are not matured or having not maturity date 
+
+"
+Incident;OEKB-6874;;Medium;M12 PROD - SECU IN View Screen incomplete;Fixed Delivered;Nadia BOUSSETTA;Bertram Schon;09/05/2025 13:08;;09/05/2025 14:18;09/05/2025 15:29;NO;;"We noticed that the VIEW screen for SECU IN/Security impact is incomplete (movement characteristics, such as Parity In/out, movement fraction, Immediate Payment and ONGO-field is missing) - see screenshot. 
+
+Could you please check? 
+
+Thanks, Bert 
+
+
+"
+Incident;OEKB-6873;;Major;M12 PROD - Failed Received Entitlement MT564 REPE - Error message;Pending;Emna EL MEKKI;Dalibor VIDIC;09/05/2025 10:34;;09/05/2025 10:43;;NO;;"Hello, 
+
+we recently received several data records in the ‘Failed Received Entitlement MT564 REPE’ menu item with an error message that we do not understand. 
+Please could you check this and let us know how we should deal with it? 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6872;PMG-42770;Medium;M12 PROD - Client Payment Waiting FX Rate;Planned;Emna EL MEKKI;Dalibor VIDIC;09/05/2025 10:20;MR3_2025;;;NO;;"Hello, 
+
+We have some data records under the 'Client Payment Waiting FX Rate' menu that we would like to ignore. Unfortunately, there is no 'Ignore' button for this menu item. 
+
+Could you please add an 'Ignore' button here? 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6871;PMG-42808;Critical;last delta and Full Load Position position file per 07052028 could not be processed;Fixed Delivered;Emna EL MEKKI;OEKB - Nikolay TSONKOV;09/05/2025 09:55;FullLoad_Hotfix 1660562025;09/05/2025 10:20;16/05/2025 18:20;NO;;"the ticket is to document that 
+
+on 07.05.2025 it was noticed that the last delta and full load position file could not be processed by the system 
+
+
+
+via support and recovery actions on 07.05.2025 and 08.05.2025 the files could be processed"
+Incident;OEKB-6870;VEGGO-7942, PMG-42758;Major;+++ URGENT +++ M12 PROD - BONU0003219557 - Event Validation failed;Pending;Emna EL MEKKI;Bertram Schon;08/05/2025 09:55;;08/05/2025 10:02;;NO;;"BONU0003219557 
+When trying to validate the event, the below error popped up. 
+MT564 IN attached. 
+
+Please check\! 
+
+Thanks, Bert"
+Incident;OEKB-6869;;Major;+++ URGENT +++ M12 PROD - MT564 failed in MegaBroker - PALM-04006: Value [RNET] doesn't exist;Closed;Emna EL MEKKI;Bertram Schon;08/05/2025 09:08;;08/05/2025 09:10;08/05/2025 09:53;NO;;"MT564 IN (attached) failed in MegaBroker with following error => 
+
+******FlowIn Identification:* 
+
+# SenderReceiver with identifier (SWIFT ) found related to the device ( BIZ.FIN.TO.CAS ) 
+
+# 9 instances of FlowInConfiguration are found for the sender ( SWIFT ). 
+
+# Cannot find any FlowInConfiguration related to the device ( BIZ.FIN.TO.CAS ). 
+
+# FlowIn Configuration with identifier ( MT564_SWIFT_DC_FLOW_IN ) found for the Sender with identifier ( SWIFT ) and the InputDevice with identifier ( BIZ.FIN.TO.CAS ) using the preparsing grammar with identifier ( Swift_Header ). 
+
+# No Domain Configuration found related to the flowIn (120927535) 
+
+******Single Flow Record Type Config Identification:* 
+
+# There is one matching element of type RecordTypeConfiguration ( 1181567002 ) with the pre-parsing result \{block4.SeqA.F23G.Function=NEWM} 
+
+******Single Flow Parsing and Mapping:* 
+*Operation fails due to the following exception:PALM-04016: The following error occurred in the Mapping \[MT564_DataCA_DC_Mapping_In], while trying to map the key \[option] using the Mapping Formula / Rule \[block4.SeqE]: PALM-04016: The following error occurred in the Mapping \[MT564_DataCA_DataOption_DC_Submapping], while trying to map the key \[dataOptionFeature] using the Mapping Formula / Rule \[F22a]: PALM-04016: The following error occurred in the Mapping \[MT564_DataOptionFeature_SubMapping], while trying to map the key \[optionFeaturesIndicator] using the Mapping Formula / Rule \[F22F.OPTF.Indicator]: PALM-04006: Value \[RNET] doesn't exist in any pair in this enumeration converter \[OptionFeatureEnum_Converter]...* 
+
+
+
+Obviously, there is an issue with 
+:22F::OPTF//RNET (maybe also with :22F::OPTF//RGRS). 
+
+Could you please check, we need this feed in M12\! 
+
+Thanks, Bert 
+
+
+
+
+"
+Incident;OEKB-6866;OEKB-6848;Critical;URGENT -- Full Load Posistion File per 06052025 not fully processed;Fixed Delivered;Emna EL MEKKI;OEKB - Nikolay TSONKOV;07/05/2025 06:41;FullLoad_Hotfix 1660562025;07/05/2025 06:44;16/05/2025 18:21;NO;;"Dears, 
+
+it seems the full load position file was not fully processed 
+
+i am sending a meeting for 08:15 
+
+
+
+BR, 
+
+Niki"
+Incident;OEKB-6865;OEKB-6855;Major;DVCA0003219794 is corrupted;Pending;Emna EL MEKKI;Wallmann GEROLD;06/05/2025 13:44;;06/05/2025 16:52;;NO;;"Hi, 
+
+
+
+Please can you check DVCA0003219794 - 
+
+It is not possible to go to the Global View Screen / View Screen. 
+
+There is the following error alert: 
+
+
+
+Unknown name value \[ACED00057E720018636F6D2E7665726D65672E6D6363612E43414F726967696E00000000000000001200007872000E6A6176612E6C616E672E456E756D000000000000000012000078707400066D616E75616C] for enum class \[com.vermeg.mcca.CAOrigin] 
+
+
+
+Can you please check and repair 
+
+"
+Incident;OEKB-6863;;Major;M12 PROD - List Client Payments - Status;Pending;Emna EL MEKKI;Dalibor VIDIC;06/05/2025 09:38;;06/05/2025 09:47;;NO;;"Hello, 
+
+i have noticed that the 'Status' option in the 'List Client Payments' menu no longer works correctly. 
+
+The query option now looks different to the one in the M12QAS. 
+
+You will no longer be able to query the various 'statuses'. 
+
+
+
+Please check\! 
+
+
+
+Thank you and BR, Dali"
+Incident;OEKB-6862;;Medium;"M12 PROD - To-Do-List ""Failed Received seev.002"" - Ignore does not work";Planned;Emna EL MEKKI;Bertram Schon;05/05/2025 15:18;MR3_2025;05/05/2025 18:59;;NO;;"Ignore of failed seev.002 messages did not work\! 
+Although message “Ignored successfully” popped up, messages are still in the list. 
+
+Please check\! 
+
+Thanks, Bert"
+Incident;OEKB-6858;;Major;+++ URGENT +++ M12 PROD - TEND0003218332 - SECU OUT disappeared in View and Update Screen;Planned;Emna EL MEKKI;Bertram Schon;02/05/2025 16:03;MR3_2025;02/05/2025 16:22;;NO;;"TEND0003218332 
+This event must be updated (deadlines, pay date to be amended). 
+When trying to update the PAYD for SECU OUT, I noticed that SECU OUT is not available in the update (and also view) screen anymore\!? 
+
+Could you please urgently check and make it available again? 
+
+Thanks, Bert"
+Incident;OEKB-6857;;Medium;+++ URGENT +++ M12 PROD - PROX0003218001 - event blocked in validation due to error message;Closed;Emna EL MEKKI;OEKB - Ana Maria Galic;02/05/2025 10:31;;02/05/2025 10:36;02/05/2025 21:36;NO;;"Hi, 
+
+PROX0003218001 is stuck in validation due to attached error messages. I used the EDIT function to update this PROX event because a normal update could not be done due to an other error message (OEKB-6694). 
+
+Can you please check this urgently? This update has to be sent out asap. Attached the latest REPL message received. 
+
+BR Ana"
+Incident;OEKB-6855;OEKB-6865;Major;Dashboard alert Validate Manual Creation / Updates does not work any longer;Pending;Thouraya BEN ABDALLAH;Wallmann GEROLD;30/04/2025 15:05;;30/04/2025 15:18;;NO;;"When I want to open the Dash Board alerts Validate Manual Creation / Updates there is an error alert - see attachment - 
+
+
+
+Please check and repair"
+Incident;OEKB-6854;;Major;--URgent--Client Notification Generation Job in Failed;Fixed Delivered;Hafedh BEN SASSI;OEKB - Nikolay TSONKOV;30/04/2025 13:05;;30/04/2025 13:51;30/04/2025 16:53;NO;;"Hello Vermeg colleagues, 
+
+today we see the Client Notification Generation failed execution 
+
+can i manually execute it? 
+
+
+
+"
+Incident;OEKB-6848;OEKB-6866;Major;+++ URGENT +++ M12 PROD - No Entitlements calculated for Client 250500;Fixed Delivered;Emna EL MEKKI;Bertram Schon;30/04/2025 09:17;FullLoad_Hotfix 1660562025;30/04/2025 09:35;16/05/2025 18:21;NO;;"Hi, 
+we noticed for several events (DVCA0003217731, DVCA0003218924, LIQU0003219880) that no entitlements have been calculated yesterday for client *250500* (other entitlements for these MainRefs were calcuated, if any), although there are eligible positions in CCSYS (but none in M12, see screenshots). 
+
+However, this doesn’t refer to all eligible holdings with Ref. 29/4 for this client - some entitlements have been calculated accordingly for 250500\! 
+
+Could you please urgently\! 
+
+Thanks, Bert"
+Incident;OEKB-6847;;Critical;+++ URGENT +++ M12 PROD +++ 2 seev.004 not in MegaCor;Closed;Emna EL MEKKI;Bertram Schon;29/04/2025 09:37;MR2_2025;29/04/2025 09:44;08/05/2025 18:48;NO;;"Today, we again received two seev.004 meeting instructions (attached) which do not reach MegaCor. 
+
+In MegaBroker, both are in status “Valid Flow” (screenshot). 
+In both instructions, Rights Holder Details seem to be complete (incl. LEI). 
+
+We need these instructions immediately in MegaCor to submit them to the custodian. 
+
+Please check urgently\! 
+Thanks, Bert 
+
+"
+Incident;OEKB-6845;;Major;+++ URGENT +++ M12 PROD - PROX0003217725 - two seev.004 did not reach Megacor;Closed;Emna EL MEKKI;OEKB - Ana Maria Galic;25/04/2025 13:03;MR2_2025;25/04/2025 13:13;08/05/2025 18:49;NO;;"Hi, 
+
+today we received 7 instructions for PROX event PROX0003217725. 5 of the instructions reached Megacor but 2 of them didn’t although they are valid in Megabroker. 
+
+I also tried to replay one of the missing instructions in Megabroker but the instruction wasn’t sent to Megacor either. 
+
+Can you please urgently check? We need those two instructions asap in Megacor as we have to forward them to the custodian TODAY till 17:00. 
+
+Attached the two flow in’s that didn’t reach Megacor. 
+
+BR Ana"
+Incident;OEKB-6842;;Major;+++ URGENT +++ M12 Megacor and M12 Megabroker NOT AVAILABLE +++;Canceled;Emna EL MEKKI;OEKB - Ana Maria Galic;24/04/2025 16:08;;24/04/2025 16:10;;NO;;"Hello, 
+
+Megacor and Megabroker PROD are not available since approximately 15 minutes\! 
+
+Please urgently check\!\! 
+
+Thanks 
+BR Ana"
+Incident;OEKB-6840;;Medium;M12 PROD - seev.004 OUT - <IssrLabl> in wrong order;Pending;Thouraya BEN ABDALLAH;Bertram Schon;24/04/2025 11:08;;24/04/2025 14:07;;NO;;"PROX0003218000 
+We received seev.004 (attached) including <IssrLabl> numbers in correct order, see excerpt => 
+
+<VoteDtls> 
+<VoteInstrForAgndRsltn> 
+<VotePerAgndRsltn> 
+<VoteInstr> 
+*<IssrLabl>2</IssrLabl>* 
+<For> 
+<Qty> 
+<Unit>1196</Unit> 
+</Qty> 
+</For> 
+</VoteInstr> 
+<VoteInstr> 
+*<IssrLabl>3</IssrLabl>* 
+<For> 
+<Qty> 
+<Unit>1196</Unit> 
+</Qty> 
+</For> 
+</VoteInstr> 
+<VoteInstr> 
+*<IssrLabl>4</IssrLabl>* 
+<For> 
+<Qty> 
+<Unit>1196</Unit> 
+</Qty> 
+</For> 
+</VoteInstr> 
+<VoteInstr> 
+*<IssrLabl>5</IssrLabl>* 
+<For> 
+<Qty> 
+<Unit>1196</Unit> 
+</Qty> 
+</For> 
+</VoteInstr> 
+
+After market instruction (seev.004 OUT attached), we noticed that <IssrLabl> is in a wrong order, see excerpt => 
+
+<VoteDtls> 
+<VoteInstrForAgndRsltn> 
+<VotePerAgndRsltn> 
+<VoteInstr> 
+*<IssrLabl>8</IssrLabl>* 
+<Agnst> 
+<Qty> 
+<Unit>1196</Unit> 
+</Qty> 
+</Agnst> 
+</VoteInstr> 
+<VoteInstr> 
+*<IssrLabl>6</IssrLabl>* 
+<For> 
+<Qty> 
+<Unit>1196</Unit> 
+</Qty> 
+</For> 
+</VoteInstr> 
+<VoteInstr> 
+*<IssrLabl>3</IssrLabl>* 
+<For> 
+<Qty> 
+<Unit>1196</Unit> 
+</Qty> 
+</For> 
+</VoteInstr> 
+<VoteInstr> 
+*<IssrLabl>5</IssrLabl>* 
+<For> 
+<Qty> 
+<Unit>1196</Unit> 
+</Qty> 
+</For> 
+</VoteInstr> 
+
+Could you please check? 
+Correct order should be considered. 
+
+Thanks, Bert 
+"
+Incident;OEKB-6839;;Major;+++ URGENT +++ M12 PROD - List Event - Search by CA Code doesn't work any longer;Planned;Thouraya BEN ABDALLAH;Bertram Schon;24/04/2025 10:56;MR3_2025;28/04/2025 09:37;28/04/2025 11:30;YES;;"Hi, 
+we noticed that (suddenly?\!) it is not possible to search by CA Code under *“List Events”*, which is very uncomfortable. 
+
+Same issue when trying to search by CA Code under 
+”*List Received MT564/Seev.031/Seev.035/Seev.039”* 
+”*List Received MT566/ Seev.036/ Seev.037”* 
+
+Could you please check? 
+
+Thanks, Bert"
+Incident;OEKB-6838;;Medium;M12 PROD - PROX0003219467 - event blocked in validation due to error message;Closed;Thouraya BEN ABDALLAH;OEKB - Ana Maria Galic;24/04/2025 09:55;;24/04/2025 16:43;30/04/2025 18:05;NO;;"Hi, 
+
+PROX event PROX0003219467 is stuck in validation process due to attached error. 
+We did a workaround by duplicating the event and the validation was possible. So for this event PROX0003219467 the error message has to be removed so that we can close it. 
+
+Can you please check? 
+
+Thanks 
+BR Ana"
+Incident;OEKB-6837;;Medium;M12 PROD - SPLR0003216322 - MT564 REPL failed in MegaBroker;Fixed Delivered;Nadia BOUSSETTA;Bertram Schon;24/04/2025 08:16;;24/04/2025 08:45;24/04/2025 09:57;NO;;"SPLR0003216322 
+MT564 REPL (attached) was received, but failed in MegaBroker with error => 
+
+*PALM-01371: The value (SPLR) for the field (Ca Code) for the entity (*[*com.vermeg.mcca.CA*|http://com.vermeg.mcca.CA]*) of code (SPLR0003216322) is not valid, possible values are: (\[ACCU, ACTV, ATTI, BIDS, BMET, BONU, BPUT, BRUP, CAPD, CAPG, CAPI, CERT, CHAN, CLSA, CMET, CONS, CONV, COOP, CREV, DECR, DETI, DFLT, DLST, DRAW, DRCA, DRIP, DSCL, DTCH, DVCA, DVOP, DVSC, DVSE, EXOF, EXOP, EXRI, EXTM, EXWA, INCR, INFO, INTR, LIQU, MCAL, MEET, MRGR, NOOF, ODLT, OMET, OTHR, PARI, PCAL, PDEF, PINK, PLAC, PPMT, PRED, PRII, PRIO, PROX, REDM, REDO, REMK, RHDI, RHTS, SHDS, SHPR, SOFF, SPLF, SUPR, SUSP, TEND, TNDP, TREC, WRTH, WTRC, XMET])* 
+
+Could you please check? 
+Thanks, Bert"
+Incident;OEKB-6832;VEGGO-7857;Major;M12 PROD - PROX0003216471 - Validation of update failed;Pending;Emna EL MEKKI;Bertram Schon;22/04/2025 15:22;;22/04/2025 15:35;;NO;;"PROX0003216471 
+seev.001 REPL (attached) was received. 
+When trying to validate (time 22/04/2025, around 16.18), the below error popped up. 
+
+Could you please check? 
+
+Thanks, Bert"
+Incident;OEKB-6830;;Major;+++ URGENT +++ M12 PROD - EXRI0003218596 - Default Instruction LAPS rejected although freeze was performed successfully;Fixed Delivered;Emna EL MEKKI;Bertram Schon;22/04/2025 08:08;;22/04/2025 08:35;23/04/2025 10:48;NO;;"EXRI0003218596 
+Default Instruction (LAPS) was generated by the system, freeze was performed successfully in T2S, see screenshot. 
+
+However, the instruction is in status “Rejected” in M12. 
+When checking the freeze instruction status notifications, I noticed that a freeze cancellation was generated by the system, but failed with error “Cannot invoke ""\[B.clone()"" because ""content"" is null”\!? 
+See all notifications below. 
+
+Could you please check? 
+
+Thanks, Bert"
+Incident;OEKB-6829;;Major;Unknown error alert;Fixed Delivered;Emna EL MEKKI;Wallmann GEROLD;18/04/2025 09:36;;18/04/2025 09:42;18/04/2025 12:11;NO;;"Hello 
+
+
+
+We have recieved this error alert on 17. April 2025 19:33 
+
+See attachment"
+Incident;OEKB-6827;;Medium;M12 PROD - PROX0003217007 - reject of update not possible;Fixed Delivered;Emna EL MEKKI;OEKB - Ana Maria Galic;17/04/2025 12:43;Production Hotfix 23/04/2025;17/04/2025 12:50;21/04/2025 15:56;NO;;"Hi, 
+
+I need to reject this update but when I click on “compare draft” following error message appears. 
+Attached you will find the REPL message. 
+
+Please check this issue. If you need logs - I clicked on “compare draft” at 13:42. 
+
+Thanks 
+BR Ana"
+Incident;OEKB-6819;;Medium;M12 PROD - several CHAN events - flow in feeds failed;Fixed Delivered;Emna EL MEKKI;OEKB - Ana Maria Galic;16/04/2025 11:46;Production Hotfix 23/04/2025;16/04/2025 12:12;22/04/2025 13:59;NO;;"Hi, 
+
+we noticed that several CHAN flow ins from 3i and WDBO failed due to following error description: 
+
+
+*“PALM-011503: Value with pk (\{id=730025919}) and type (com.vermeg.services.announcementDC.MCDataCleansingInput) does not exist any more.”* 
+
+
+All those feeds landed in “Repair Received Feed” in M12. 
+
+Attached the 3 flow ins from 3i and the one from ZWP. 
+
+Can you please check what this error is about and moreover how to repair those feeds? 
+
+Thanks 
+BR Ana"
+Incident;OEKB-6814;;Major;+++ URGENT +++ M12 PROD - PROX0003219111 - seev.001 OUT - <PrxyChc> incorrect;Closed;Emna EL MEKKI;Bertram Schon;15/04/2025 10:34;;15/04/2025 10:41;15/04/2025 11:16;NO;;"PROX0003219111 
+seev.001 OUT (attached) contains incorrect tags within <PrxyChc> sequence, see screenshots. 
+
+In seev.001 IN (attached), <PrxyChc> is populated as follows: 
+
+_<PrxyChc>_ 
+_<Prxy>_ 
+_<AuthrsdPrxy>_ 
+_<PrxyTp>CHRM</PrxyTp>_ 
+_</AuthrsdPrxy>_ 
+_<AuthrsdPrxy>_ 
+_<PrxyTp>NEPR</PrxyTp>_ 
+_</AuthrsdPrxy>_ 
+_</Prxy>_ 
+_</PrxyChc>_ 
+
+Could you please check and adapt the mapping? 
+
+Thanks, Bert 
+"
+Incident;OEKB-6799;;Major;Rate Value is wrongfully 0 if even if not present in Redaout Files.;Fixed Delivered;Emna EL MEKKI;OEKB - Lukasz Walczuk;10/04/2025 08:13;Production Hotfix 23/04/2025;10/04/2025 11:34;21/04/2025 15:57;NO;;"Hallo Emna, 
+
+do we have a Rule in place that we put a default value 0, in the Rate field, when RateValue or Next Coupon Rate is not present? 
+
+If yes, please deactivate it. 
+
+
+
+
+
+If there is no “Rate Value” or “Next Coupon Rate” present, leave it blank. 
+
+Either no interest rate in 3i - then there must not be 0 in the Rate Value or Next Coupon Rate field in the referentials 
+
+"
+Incident;OEKB-6796;;Medium;M12 PROD - MT564 OUT - QCAS CODE;Pending;Hafedh BEN SASSI;Dalibor VIDIC;09/04/2025 14:50;;09/04/2025 15:13;;NO;;"Hello, 
+
+we have noticed that in the MT564 NEWM, REPL and REPE messages regarding REDM, MCAL and EXWA events, the code 'QCAS' is listed in line 22F although there is only one CASH option. 
+
+22F::OPTF//QCAS 
+
+The code description is as follows: 
+
+*Feature whereby the holder should only instruct a cash amount.* 
+
+
+
+We are of the opinion that this line is incorrect. 
+
+Can you please check\! 
+
+
+
+Thank you and BR, Dalibor 
+
+"
+Incident;OEKB-6793;;Medium;Post Reda Go Live failed instruments;Fixed Delivered;Emna EL MEKKI;OEKB - Lukasz Walczuk;09/04/2025 06:38;Production Hotfix 23/04/2025;09/04/2025 08:28;22/04/2025 11:46;YES;;"Hallo Hafedh, 
+
+
+
+we have some hybrids, which failed today, 
+
+
+
+can we make a call to check, what date is missing here? 
+
+BR 
+
+Lukasz 
+
+"
+Incident;OEKB-6790;;Major;M12 PROD - OMET0003218861 - Saving of update failed;Fixed Delivered;Emna EL MEKKI;Bertram Schon;08/04/2025 12:46;Production Hotfix 23/04/2025;08/04/2025 14:11;22/04/2025 13:55;NO;;"OMET0003218861 
+I updated the event by removing PROX and NOAC Option and added an outgoing comment. 
+
+When trying to save the update, the below error. 
+
+Could you please check? 
+Thanks, Bert 
+
+
+
+
+"
+Incident;OEKB-6788;;Medium;M12 PROD - SHDS0003218608 - generation of notifications failed;Fixed Delivered;Emna EL MEKKI;OEKB - Ana Maria Galic;07/04/2025 08:31;Hotfix 08/04/2025;07/04/2025 08:41;08/04/2025 12:09;NO;;"Hi, 
+
+I activated this SHDS event via “set as reliable” and wanted to generate the notifications as usual to send them out to the clients but it’s not possible. After clicking on “GenerateByCA”, this infomation pops up. Attached the seev.045 received. 
+Can you please urgently check? 
+
+Thanks 
+BR Ana"
+Incident;OEKB-6786;;Major;M12 PROD - AT0000A30FD5 - Error in the Generated Schedule;Pending;Emna EL MEKKI;Dalibor VIDIC;04/04/2025 15:15;;04/04/2025 15:43;;NO;;"Hello, 
+
+The above ISIN has a coupon date on 07 April 2025. 
+
+The corresponding INTR event is also created in MC. 
+
+However, the MC has also created an INTR event on 11 April 2025. 
+
+Please check why the referentials here are not correct. 
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6785;;Medium;M12 PROD - List Received MT564/MT566 - Search for CA Code failed;Planned;Thouraya BEN ABDALLAH;Bertram Schon;04/04/2025 11:47;MR3_2025;04/04/2025 12:32;28/04/2025 10:11;YES;;"Hi, 
+after deployment from yesterday, we noticed that we are not able to search for CA Codes anymore (no pop up menu available). 
+This refers to 
+*List Received MT564/Seev.031/Seev.035/Seev.039* 
+*List Received MT566/ Seev.036/ Seev.037* 
+
+But please check if this issue also occurs in other search screens. 
+
+Thanks, Bert"
+Incident;OEKB-6784;;Major;"M12 PROD - 11 PROX events still in status ""Preliminary"" although updated and validated";Fixed Delivered;Emna EL MEKKI;Bertram Schon;04/04/2025 10:45;Hotfix 08/04/2025;04/04/2025 10:51;08/04/2025 12:10;NO;;"Hi, 
+
+Ana updated 11 PROX events, I validated all of them. 
+However, we noticed that these events are all still in status “Preliminary” (see screenshots). 
+
+Unlike other PROX events, all of them have no Record Dates, maybe this has to do with this issue. 
+Events must move to “Activated” anyway, after validating. 
+
+Could you please urgently check? 
+
+Thanks, Bert 
+
+"
+Incident;OEKB-6783;;Medium;"M12 PROD - EXRI - OVER Option - Screen should not include ""Is Broker Option"", ""Trade Begin"", ""Trade End""";Planned;Thouraya BEN ABDALLAH;Bertram Schon;04/04/2025 08:40;MR3_2025;;;NO;;"Hi, 
+Today I noticed that there are fields in the OVER Option screen (within EXRI event), which are irrelevant, could you please check and skip those? 
+
+See screenshot. 
+
+Thanks, Bert"
+Incident;OEKB-6776;OEKB-6641;Medium;M12 PROD - PROX0003216320/ PROX0003216486 - 'compare draft' not possible;Fixed Delivered;Emna EL MEKKI;OEKB - Ana Maria Galic;02/04/2025 15:21;;02/04/2025 15:23;04/04/2025 08:37;NO;;"Hi, 
+
+for these two prox events we received REPL messages, but I can’t do anything - when I click on ‘compare draft’ this error appears. 
+
+Attached you will find the NEWM and the REPL received for these two events. 
+
+Please check this asap. 
+
+Thanks 
+BR Ana 
+
+"
+Incident;OEKB-6775;;Medium;M12 PROD - BIDS0003217779 - Global View - MT567 OUT not available;Closed;Emna EL MEKKI;Bertram Schon;02/04/2025 14:10;MR1_2025;02/04/2025 14:21;08/04/2025 12:12;NO;;"Hi, 
+I noticed that MT567 OUT messages are not available in Global View under “MT567/CAIS/Report/Seev.032/Seev.034/Seev.041” (see screenshot 1) although a lot of MT567 were sent for this event and can be found under “List Sent MT567/ Seev.034/ Seev.032/ Seev.041” (see screenshot 2). 
+
+Please check\! 
+Thanks, Bert 
+
+"
+Incident;OEKB-6774;;Medium;M12 PROD - BIDS0003217779 - Consolidate ALL did not work accordingly;Pending;Thouraya BEN ABDALLAH;Bertram Schon;02/04/2025 13:43;;02/04/2025 14:06;;NO;;"BIDS0003217779 
+We received 13 client instructions (see screenshot) for CASH option. 
+
+I wanted to consolidate ALL, but this did not work accordingly as 
+there are now 5 Market Entitlements each for CASH and SECU OUT, instead of 1 for CASH and 1 for SECU OUT (see screenshot). 
+
+Could you please check this behavior? 
+
+Thanks, Bert"
+Incident;OEKB-6768;OEKB-6746;Major;M12 PROD - AT0WEB2310A6 PCAL Event is missing;Planned;Emna EL MEKKI;Dalibor VIDIC;01/04/2025 08:20;MR3_2025;01/04/2025 08:34;;NO;;"Hello, 
+
+here we have a second case in which we are missing the PCAL Event (19.04.2025). 
+
+Please check\! 
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6767;;Medium;M12 PROD - PROX0003216319 - validation of update not possible;Closed;Emna EL MEKKI;OEKB - Ana Maria Galic;31/03/2025 12:29;Production Hotfix 23/04/2025;31/03/2025 12:34;08/04/2025 12:16;NO;;"Hi, 
+
+on friday I updated this PROX event - I validated the REPL message because the meeting resolutions changed and I could save the update. The order of the meeting resolutions is still not correct (ticket OEKB-6731). 
+Anyway, Bert could not validate my update because an error appears. 
+
+Attached the received REPL message. 
+
+Thanks 
+BR Ana"
+Incident;OEKB-6766;PMG-42508;Medium;M12 PROD - PROX0003216653 - validation of REPL not possible;Pending;Nadia BOUSSETTA;OEKB - Ana Maria Galic;31/03/2025 12:20;;31/03/2025 12:28;;NO;;"Hi, 
+
+I wanted to validate the REPL message as some meeting resolutions were added but I received this error message. 
+Attached the REPL message we received. 
+
+Can you please check? 
+Thanks 
+
+BR Ana"
+Incident;OEKB-6761;;Major;M12 PROD - PRED0003209274 Update not possible - URGENT;Fixed Delivered;Emna EL MEKKI;Dalibor VIDIC;28/03/2025 08:16;;28/03/2025 08:33;18/04/2025 14:08;NO;;"Hello, 
+
+The above-mentioned PRED event cannot be updated. 
+
+Please check\! 
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6749;PMG-42462;Major;M12 PROD - AT0000A16WK4 - Error in the Generated Schedule;Planned;Emna EL MEKKI;Dalibor VIDIC;27/03/2025 08:33;MR3_2025;27/03/2025 08:39;;NO;;"Hello, 
+
+The above ISIN has a coupon date of 28 March 2025. 
+
+The interest period is from 28 March 2024 to 27 March 2025, which is 360 days. 
+
+Although the interest period displayed is correct, Megacor calculates 362 days. This results in an incorrect interest rate. 
+
+Please check why the referentials here are not correct. 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6746;PMG-42461, OEKB-6768;Major;M12 PROD - AT0000A073W3 PCAL Event is missing;Planned;Emna EL MEKKI;Dalibor VIDIC;26/03/2025 12:27;MR3_2025;26/03/2025 12:32;;NO;;"Hello, 
+
+A PCAL event (15.04.2025) for the above ISIN is missing in M12. 
+
+Please check\! 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6744;;Major;+++ URGENT +++ M12 PROD - seev.001 IN received with Error in MegaBroker;Closed;Emna EL MEKKI;Bertram Schon;25/03/2025 06:58;;25/03/2025 07:21;18/04/2025 15:25;NO;;"Hi, 
+could you please urgently check the attached seev.001 IN which was received in MegaBroker with error description “*Could not receive Message”*?\! => 
+
+******FlowIn Identification:* 
+
+# SenderReceiver with identifier (SWIFT20022_SRD ) found related to the device ( 3i.iso20022.to.mb ) 
+
+# 31 instances of FlowInConfiguration are found for the sender ( SWIFT20022_SRD ). 
+
+# Cannot find any FlowInConfiguration related to the device ( 3i.iso20022.to.mb ). 
+
+# FlowIn Configuration with identifier ( SEEV.001.001.11_DATACA_FLOWIN ) found for the Sender with identifier ( SWIFT20022_SRD ) and the InputDevice with identifier ( 3i.iso20022.to.mb ) using the preparsing grammar with identifier ( HEAD20022 ). 
+
+# No Domain Configuration found related to the flowIn (120768704) 
+
+******Single Flow Record Type Config Identification:* 
+
+# The configuration ( SEEV.001.001.11_DATACA_FLOWIN ) has one RecordTypeConfiguration ( 1182917002 ) 
+
+******Receivers Determination Failed:* 
+*Could not receive Message.* 
+
+Thanks, Bert 
+
+"
+Incident;OEKB-6742;;Critical;M12 PROD - AT000B078746 - INTR0003212604 - Incorrect payment URGENT;Fixed Delivered;Emna EL MEKKI;Dalibor VIDIC;24/03/2025 08:02;;24/03/2025 08:11;11/04/2025 17:02;NO;;"Hello, 
+
+the above INTR event was incorrectly executed on 21/03/2025. 
+
+Client entitlements have not been correctly calculated. 
+
+Client 247200 => Eligible 286.800.000 
+
+=> Calculated 261.800.000 
+
+Client 250500 => Eligible 102.500.000 
+
+=> Calculated 127.500.000 
+
+The holdings displayed under 'Client Eligible Position' are correct'. 
+
+
+
+Please check urgently\! 
+
+
+
+Thank you and BR, Dalibor 
+
+
+
+
+
+"
+Incident;OEKB-6741;;Major;M12 PROD - REDM0003212605 - incorrect Client and Market Calculation - URGENT;Planned;Emna EL MEKKI;Dalibor VIDIC;21/03/2025 10:14;MR3_2025;21/03/2025 11:09;;NO;;"Hello, 
+
+the entitlements for the ISIN mentioned above have been calculated incorrectly. 
+
+The redemption rate is 100%. This means that the redemption amount is EUR 1.000.000,00. 
+
+However, only EUR 1.000,00 has been calculated. 
+
+In the Swift messages under '92A' it says that the rate is 0;1. This is not correct. 
+
+Please check urgently as today is payday. 
+
+
+
+Thank you and BR, Dali"
+Incident;OEKB-6739;OEKB-6545, OEKB-6666, OEKB-6705;Major;M12 PROD - Event automatically closed - INTR00157866;Fixed Delivered;Emna EL MEKKI;Dalibor VIDIC;20/03/2025 12:19;;20/03/2025 12:33;23/03/2025 14:31;NO;;"Hello, 
+
+the below INTR Event has been closed which is not correct. 
+
+INTR00157866 
+
+Please check\! 
+
+Thank you and BR, Dali"
+Incident;OEKB-6735;;Major;"M12 PROD - DVCA0003214189 - Event set to ""Confirmed""";Fixed Delivered;Emna EL MEKKI;Dalibor VIDIC;20/03/2025 10:16;;20/03/2025 10:40;18/04/2025 15:23;NO;;"Hello, 
+
+the above event was set to status ‘confirmed’ and this is not correct. 
+
+The reason for this is probably that the ‘Market Entitlement’ was not calculated (is cancelled manually). 
+
+Please check and change the status to the previous status “activated” “executed”. 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6733;;Medium;M12 PROD - No E-Mail-Alert received for Meeting Cancellation (seev.002);Pending;Nadia BOUSSETTA;Bertram Schon;20/03/2025 08:20;;20/03/2025 08:42;;NO;;"Hi, 
+we recently received 3 seev.002 meeting cancellation messages from our custodian, but we noticed that we did not get alerted via E-Mail for 2 of those 3. 
+Only one alert was received (see screenshot) for MainRef PROX0003215277. 
+
+We also noticed that for the other 2, no MainRef is assigned to cancellation message, although in both cases, valid events with corresponding Meeting ID (“Market Reference”) exist. 
+
+Could you please check? 
+Thanks, Bert 
+
+
+
+
+
+"
+Incident;OEKB-6731;;Medium;M12 PROD - PROX0003216820/ PROX0003216821 - order of meeting resolutions not correct;Pending;Nadia BOUSSETTA;OEKB - Ana Maria Galic;19/03/2025 12:21;;19/03/2025 12:49;;NO;;"We noticed that in some PROX events the meeting resolutions are mapped completely incorrect in M12 in comparison to the seev.001 received. 
+
+Attached you will find two examples: 
+
+ISIN IT0001031084 - received seev.001 from our custodian and our sent seev.001 to the clients 
+ISIN - ES0113900J37 - received seev.001 from our custodian and our sent seev.001 to the clients 
+
+
+Can you please check this behaviour? I think it could be related to OEKB-6694 as I could not save these two PROX events and had to do a workaround by duplicating the events (I reveiced the same error message as described in OEKB-6694). 
+
+
+Thanks 
+BR Ana 
+
+"
+Incident;OEKB-6730;;Major;M12 PROD - Client Payment Status - WaitingCashBookingConfirmation - DVCA0003216059;Canceled;Emna EL MEKKI;Dalibor VIDIC;19/03/2025 10:28;;19/03/2025 10:54;;NO;;"Hello, 
+
+In event DVCA0003216059 there is a claim booking in USD (14,07) for 240000 (credit) but the status is “WaitingCashBookingConfirmation”. 
+
+Is this the same problem as in ticket “OEKB-6675”? 
+
+Please check\! 
+
+Thank you and BR, Dali"
+Incident;OEKB-6721;;Major;"M12 PROD - CCSYS Instruction with Status ""Rejected""";Fixed Delivered;Emna EL MEKKI;Dalibor VIDIC;17/03/2025 14:00;;17/03/2025 14:58;19/03/2025 15:13;NO;;"Hello, 
+
+A claim has been created in the event below. 
+
+AT0000A146T3 - DVCA0003215162 
+
+However, the instruction in CCSYS was rejected with the reason “ The Receiving Securities Account does not exist in T2S” 
+
+I have found several claims that have been rejected with this reason. 
+
+It concerns Cross CSD Instructions. 
+
+
+
+Please check\! 
+
+
+
+Thank you and BR, Dalibor 
+
+"
+Incident;OEKB-6713;;Major;M12 PROD - - Error in the Generated Schedule AT0000A30FD5;Pending;Nadia BOUSSETTA;Dalibor VIDIC;13/03/2025 16:59;;14/03/2025 08:17;;NO;;"Hello, 
+
+Please check why the 'Loan Schedule' was not created correctly for the AT0000A30FD5. 
+
+The next coupon date should be the 7th of April 2025 and the last coupon date was the 7th of October 2024 but M12 calculate the coupon from 11.04.2024. 
+
+Coupons from 2024 are not available in the Loan Schedule. 
+
+Thank you and BR, Dali"
+Incident;OEKB-6712;;Major;M12 PROD - AT000B015078 - Error in the Generated Schedule;Pending;Emna EL MEKKI;Dalibor VIDIC;13/03/2025 15:58;;13/03/2025 16:07;;NO;;"Hello, 
+
+Could you please check why the 'Loan Schedule' for the AT000B015078 has not been created correctly? 
+
+The next coupon date should be the 7th of April 2025 and the last coupon date was the 6th of January 2025 but M12 calculates the coupon from 08.01.2025 to 07.04.2025 
+
+
+
+Thank you and BR, Dalibor 
+
+"
+Incident;OEKB-6708;;Major;M12-I5: - MCAL0003211223 - MT564 WITH Message not sent to 3i;Planned;Emna EL MEKKI;Dalibor VIDIC;13/03/2025 11:20;MR3_2025;13/03/2025 11:27;;NO;;"Hello, 
+
+the above event has been withdrawn. 
+
+I have noticed, that the MT564 WITH message was not sent to DEF005 (3i), DEF001 and DEF003. 
+
+Please check\! 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6704;PMG-42363;Medium;M12 PROD - PLAC0003214814 - EFFD must be a critical field / Automatic update must not remove the outgoing comment;Planned;Thouraya BEN ABDALLAH;Bertram Schon;12/03/2025 11:12;MR3_2025;12/03/2025 11:22;;NO;;"PLAC0003214814 
+was set up without Effective Date due to 564 IN (attached). 
+Today, we receive 564 REPL (attached) including the Effective Date. 
+However, the event was automatically updated - obviously, Effective Date is not defined as critical field. 
+Also, I noticed that the outgoing comment was removed in the event data due to the automatic update. 
+See attached 564 NEWM OUT including the outgoing comment and 564 REPL OUT which was automatically sent without outgoing comment, which is confusing for the client. 
+
+Please make sure that 
+*Effective Date is defined as critical field* 
+and that 
+the *Outgoing Comment must never be removed by an automatic update* 
+
+Thanks, Bert 
+
+"
+Incident;OEKB-6703;PMG-42396;Major;M12 PROD - MT566 from 3i has not arrived in M12 - URGENT;Planned;Emna EL MEKKI;Dalibor VIDIC;12/03/2025 11:06;MR3_2025;12/03/2025 11:10;;NO;;"Hello, 
+
+MT566 message from 3i for AT0000A2HB37 - INTR0003211756 has not arrived in M12. 
+
+Please check urgently\! 
+
+
+
+Thank you and BR, Dalibor 
+
+"
+Incident;OEKB-6698;OEKB-6641;Medium;M12 PROD - PROX0003216361 - Validate/Reject of manual update not possible;Closed;Nadia BOUSSETTA;Bertram Schon;10/03/2025 08:10;;10/03/2025 08:25;10/03/2025 10:07;NO;;"PROX0003216361 
+I update the event manually (added ProcessingTextForNextIntermediary and ANOU). When trying to validate, the below error popped up. 
+
+As workaround, I duplicated the event, validation was successfull. 
+
+Hence, PROX0003216361 should be immediately closed after validation/rejection of the update. 
+
+Please let me know when the event is “unblocked” and ready to be closed. 
+
+Thanks, Bert"
+Incident;OEKB-6695;PMG-42343, OEKB-6543;Major;M12 PROD - Reconciliation Mismatch with Market CP - DVCA0003214713 - URGENT;Planned;Emna EL MEKKI;Dalibor VIDIC;06/03/2025 10:41;MR3_2025;06/03/2025 11:20;;NO;;"Hello,  
+
+The market payment for the above dividend payment was successful. However, no client booking has been made. 
+
+There is a Reconciliation Mismatch with Market Cash Payment and I believe that this is again due to the cent difference between collection letter and the market entitlement. 
+
+
+
+Please check urgently\! 
+
+
+
+Thank you and BR, Dalibor"
+Incident;OEKB-6694;VEGGO-7857;Medium;M12 PROD - PROX0003216162 - saving of event not possible;Pending;Thouraya BEN ABDALLAH;OEKB - Ana Maria Galic;06/03/2025 09:35;;06/03/2025 09:47;;NO;;"Hi, 
+
+PROX0003216162 - I updated the announcement date and the client deadline time in this PROX event and wanted to save the update but then this error popped up. Can you please check what this error is about? 
+Attached the newest REPL message from this PROX event. 
+
+Thank you 
+BR Ana 
+
+"
+Incident;OEKB-6692;PMG-42352;Major;M12 PROD - AT0000A1PHY1 - PCAL0003204291 Update not found;Planned;Emna EL MEKKI;Dalibor VIDIC;04/03/2025 15:58;MR3_2025;04/03/2025 16:03;;NO;;"Hello, 
+
+I have updated the above ISIN and it has been validated. 
+
+At the same time Gerold did an update. This update could not be found. 
+
+It is also possible to update the event again. However, these updates cannot be found under the menu item Event Validation => Validate/Reject Manual Creation/Updates. 
+
+
+
+Please check\! 
+
+
+
+Thank you and BR, Dalibor"
+Generated at Tue May 20 10:46:47 UTC 2025 by Emna EL MEKKI using Jira 9.4.25#940025-sha1:6cf935f91739b43d1216a637e5c998e86376bd2e. ;;;;;;;;;;;;;;
