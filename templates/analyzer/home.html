@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home | Vermeg Analysis{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section py-5 mb-5" style="background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('{% static 'images/digital-solutions.png' %}'); background-size: cover; background-position: center; margin-top: -1.5rem; padding: 6rem 0; color: white;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold mb-4">Excellence without borders</h1>
+                <h2 class="fw-light mb-4">Transform your data into actionable insights</h2>
+                <p class="lead mb-5">Analyze sentiment, identify trends, and visualize key metrics from your data using advanced NLP technology. Make informed decisions with comprehensive analytics dashboards.</p>
+                <div class="mt-4">
+                    <a href="{% url 'login' %}" class="btn btn-danger btn-lg me-3 mb-3 mb-lg-0 px-4">
+                        Get Started
+                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg mb-3 mb-lg-0 px-4">
+                        Create Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vermeg by the Numbers Section -->
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 5px; height: 25px; background-color: var(--primary);"></div>
+                <h2 class="mb-0">Vermeg by the Numbers</h2>
+            </div>
+        </div>
+    </div>
+    <div class="row text-center g-4">
+        <div class="col-md-3">
+            <div class="p-4">
+                <h2 class="display-4 fw-bold mb-2">30+</h2>
+                <p class="text-muted mb-0">Years of expertise</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-4">
+                <h2 class="display-4 fw-bold mb-2">40+</h2>
+                <p class="text-muted mb-0">Countries</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-4">
+                <h2 class="display-4 fw-bold mb-2">160+</h2>
+                <p class="text-muted mb-0">Clients</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-4">
+                <h2 class="display-4 fw-bold mb-2">23+</h2>
+                <p class="text-muted mb-0">Central banks</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container my-5 py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 5px; height: 25px; background-color: var(--primary);"></div>
+                <h2 class="mb-0">Powerful Analytics Features</h2>
+            </div>
+            <p class="lead text-muted mt-3">Everything you need to gain insights from your data</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-danger p-3 rounded-circle text-white me-3">
+                            <i class="fas fa-file-import"></i>
+                        </div>
+                        <h4 class="card-title mb-0">Easy File Import</h4>
+                    </div>
+                    <p class="card-text">Upload your data in CSV or Excel format and get analysis results with a single click. Supports various export formats.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-danger p-3 rounded-circle text-white me-3">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h4 class="card-title mb-0">NLP Analysis</h4>
+                    </div>
+                    <p class="card-text">Leverage natural language processing to identify trends, common themes, sentiment analysis, and priority distributions in your data.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-danger p-3 rounded-circle text-white me-3">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h4 class="card-title mb-0">Visual Insights</h4>
+                    </div>
+                    <p class="card-text">View your data through interactive charts and visualizations to better understand data distribution, sentiment, and themes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="container my-5 py-4 bg-light">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 5px; height: 25px; background-color: var(--primary);"></div>
+                <h2 class="mb-0">How It Works</h2>
+            </div>
+            <p class="lead text-muted mt-3">Three simple steps to gain insights from your data</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 bg-white shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="rounded-circle bg-danger text-white shadow d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                        <h2 class="fw-bold mb-0">1</h2>
+                    </div>
+                    <h4>Upload Data File</h4>
+                    <p>Export your data as CSV or Excel and upload the file to our platform.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 bg-white shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="rounded-circle bg-danger text-white shadow d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                        <h2 class="fw-bold mb-0">2</h2>
+                    </div>
+                    <h4>Process Analysis</h4>
+                    <p>Our system automatically analyzes the data using advanced NLP techniques.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 bg-white shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="rounded-circle bg-danger text-white shadow d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                        <h2 class="fw-bold mb-0">3</h2>
+                    </div>
+                    <h4>View Insights</h4>
+                    <p>Explore interactive dashboards showing key metrics and insights from your data.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-danger text-white shadow-lg border-0">
+                <div class="card-body p-5 text-center">
+                    <h2 class="fw-bold mb-3">Ready to get started?</h2>
+                    <p class="lead mb-4">Create an account today and start analyzing your data.</p>
+                    <a href="{% url 'register' %}" class="btn btn-light btn-lg px-4">
+                        Get Started Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

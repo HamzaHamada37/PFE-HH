@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load analyzer_filters %}
+{% load static %}
+
+{% block title %}Dashboard | Vermeg Analysis{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h1>Dashboard</h1>
+    <p>This is a minimal version to fix the template error.</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    console.log("JS loaded");
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}

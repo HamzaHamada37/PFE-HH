@@ -1,0 +1,532 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load analyzer_filters %}
+
+{% block title %}Analysis Details | Vermeg Analysis{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Analysis Details</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+</div>
+
+<div class="mb-4">
+    <a href="{% url 'download_cleaned_data' analysis.id %}" class="btn btn-danger">
+        <i class="fas fa-download me-2"></i>Download Cleaned Data (CSV)
+    </a>
+</div>
+
+<div class="mb-4 text-end">
+    <a href="{% url 'regenerate_analysis' jira_file.id %}" class="btn btn-primary">
+        <i class="fas fa-sync-alt me-2"></i>Regenerate Analysis
+    </a>
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary ms-2">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">File Details</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Filename:</strong> {{ analysis.jira_file.file.name|truncatechars:40 }}</p>
+                <p><strong>Uploaded:</strong> {{ analysis.jira_file.uploaded_at|date:"F j, Y, g:i a" }}</p>
+                {% if analysis.jira_file.analysis_date %}
+                <p><strong>Analysis Date:</strong> <span class="text-primary">{{ analysis.jira_file.analysis_date|date:"F j, Y" }}</span></p>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <p><strong>File Type:</strong> {{ analysis.jira_file.get_file_type_display }}</p>
+                <p><strong>Total Issues:</strong> {{ analysis.issue_count }}</p>
+                <p><strong>Analysis Created:</strong> {{ analysis.created_at|date:"F j, Y, g:i a" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client Metrics Dashboard -->
+<div class="mb-4">
+    <div class="d-flex align-items-center mb-3">
+        <div class="me-3" style="width: 5px; height: 25px; background-color: var(--primary);"></div>
+        <h3 class="fw-bold mb-0">Client Metrics Dashboard</h3>
+    </div>
+
+    {% if analysis.client_metrics %}
+        <!-- Client Metrics Summary Cards -->
+        <div class="row g-4 mb-4">
+            <!-- Total Clients Card -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                            <i class="fas fa-users text-danger fa-2x"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-0">{{ analysis.client_metrics|length }}</h3>
+                            <p class="text-secondary mb-0">Total Clients</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Sentiment Card -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                            <i class="fas fa-smile text-danger fa-2x"></i>
+                        </div>
+                        <div>
+                            {% with sentiment_values=analysis.client_metrics.values|map_attribute:'sentiment' %}
+                            {% with avg_sentiment=sentiment_values|average %}
+                            <h3 class="fw-bold mb-0">
+                                {% if avg_sentiment > 0.3 %}
+                                    <span class="text-success">Positive</span>
+                                {% elif avg_sentiment >= 0 %}
+                                    <span class="text-secondary">Neutral</span>
+                                {% elif avg_sentiment >= -0.2 %}
+                                    <span class="text-warning">Uncomfortable</span>
+                                {% elif avg_sentiment >= -0.5 %}
+                                    <span style="color: #fd7e14;">Annoyed</span>
+                                {% elif avg_sentiment >= -0.8 %}
+                                    <span class="text-danger">Frustrated</span>
+                                {% else %}
+                                    <span class="text-danger">Very Frustrated</span>
+                                {% endif %}
+                            </h3>
+                            <p class="text-secondary mb-0">Avg Sentiment ({{ avg_sentiment|floatformat:2 }})</p>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Resolution Time Card -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                            <i class="fas fa-clock text-danger fa-2x"></i>
+                        </div>
+                        <div>
+                            {% with resolution_values=analysis.client_metrics.values|map_attribute:'Avg_Resolution_Time_Days' %}
+                            {% with avg_resolution=resolution_values|average %}
+                            <h3 class="fw-bold mb-0">{{ avg_resolution|floatformat:1 }}</h3>
+                            <p class="text-secondary mb-0">Avg Resolution (Days)</p>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Tickets Card -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                            <i class="fas fa-ticket-alt text-danger fa-2x"></i>
+                        </div>
+                        <div>
+                            {% with ticket_values=analysis.client_metrics.values|map_attribute:'Tickets' %}
+                            {% with total_tickets=ticket_values|sum_values %}
+                            <h3 class="fw-bold mb-0">{{ total_tickets|floatformat:0 }}</h3>
+                            <p class="text-secondary mb-0">Total Tickets</p>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Metrics Charts -->
+        <div class="row g-4 mb-4">
+            <!-- Customer Experience Score Chart -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Customer Experience Score Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="clientImpactChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Sentiment Chart -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Client Sentiment Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="clientSentimentChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <!-- Resolution Time Chart -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Resolution Time by Client</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="resolutionTimeChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ticket Types Chart -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Ticket Types</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="ticketTypeChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Metrics Detailed Table -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Detailed Client Metrics</h5>
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#clientMetricsTable" aria-expanded="false">
+                    <i class="fas fa-table me-1"></i> Toggle Table
+                </button>
+            </div>
+            <div class="collapse show" id="clientMetricsTable">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th>Creator</th>
+                                    <th>Sentiment</th>
+                                    <th>Priority Impact</th>
+                                    <th>Issue Type Impact</th>
+                                    <th>Tickets</th>
+                                    <th>Avg Resolution Time (Days)</th>
+                                    <th>Customer Experience Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for creator, metrics in analysis.client_metrics.items %}
+                                    <tr>
+                                        <td>{{ creator }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if metrics.sentiment > 0.3 %}
+                                                    <span class="badge bg-success me-2">Positive</span>
+                                                {% elif metrics.sentiment >= 0 %}
+                                                    <span class="badge bg-secondary me-2">Neutral</span>
+                                                {% elif metrics.sentiment >= -0.2 %}
+                                                    <span class="badge bg-warning me-2">Uncomfortable</span>
+                                                {% elif metrics.sentiment >= -0.5 %}
+                                                    <span class="badge bg-orange me-2" style="background-color: #fd7e14;">Annoyed</span>
+                                                {% elif metrics.sentiment >= -0.8 %}
+                                                    <span class="badge bg-danger me-2">Frustrated</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger me-2">Very Frustrated</span>
+                                                {% endif %}
+                                                {{ metrics.sentiment|floatformat:2 }}
+                                            </div>
+                                        </td>
+                                        <td>{{ metrics.Priority_Impact|floatformat:2 }}</td>
+                                        <td>{{ metrics.Issue_Type_Impact|floatformat:2 }}</td>
+                                        <td>{{ metrics.Tickets }}</td>
+                                        <td>{{ metrics.Avg_Resolution_Time_Days|floatformat:2 }}</td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-danger" role="progressbar"
+                                                    style="width: {{ metrics.Client_Impact|floatformat:2|multiply:100 }}%;"
+                                                    aria-valuenow="{{ metrics.Client_Impact|floatformat:2|multiply:100 }}"
+                                                    aria-valuemin="0" aria-valuemax="100">
+                                                    {{ metrics.Client_Impact|floatformat:2|multiply:100 }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> No client metrics available for this analysis.
+        </div>
+    {% endif %}
+</div>
+
+<div class="row">
+    <!-- Priority Distribution Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Priority Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="priorityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Distribution Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Status Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prevent automatic scrolling by saving and restoring scroll position
+        const scrollPosition = window.scrollY;
+        const chartColors = [
+            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+            '#5a5c69', '#858796', '#6610f2', '#6f42c1', '#fd7e14'
+        ];
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        };
+
+        // Ticket Type Chart
+        const ticketTypeData = {{ analysis.ticket_types|safe }};
+        new Chart(
+            document.getElementById('ticketTypeChart'),
+            {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(ticketTypeData),
+                    datasets: [{
+                        data: Object.values(ticketTypeData),
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            }
+        );
+
+        // Priority Chart
+        const priorityData = {{ analysis.priority_distribution|safe }};
+        new Chart(
+            document.getElementById('priorityChart'),
+            {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(priorityData),
+                    datasets: [{
+                        label: 'Priority Distribution',
+                        data: Object.values(priorityData),
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            }
+        );
+
+        // Status Chart
+        const statusData = {{ analysis.status_distribution|safe }};
+        new Chart(
+            document.getElementById('statusChart'),
+            {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusData),
+                    datasets: [{
+                        data: Object.values(statusData),
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            }
+        );
+
+
+
+        // Client Metrics Charts (only if client metrics exist)
+        {% if analysis.client_metrics %}
+            // Customer Experience Score Chart
+            const clientLabels = Object.keys({{ analysis.client_metrics|safe }});
+            const clientImpactData = [];
+
+            {% for creator, metrics in analysis.client_metrics.items %}
+                clientImpactData.push({
+                    creator: "{{ creator }}",
+                    impact: {{ metrics.Client_Impact|default:0|floatformat:2 }},
+                    tickets: {{ metrics.Tickets }},
+                    resolution: {{ metrics.Avg_Resolution_Time_Days|floatformat:2 }}
+                });
+            {% endfor %}
+
+            // Sort by impact for better visualization
+            clientImpactData.sort((a, b) => b.impact - a.impact);
+
+            new Chart(
+                document.getElementById('clientImpactChart'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: clientImpactData.map(item => item.creator),
+                        datasets: [{
+                            label: 'Customer Experience Score',
+                            data: clientImpactData.map(item => item.impact * 100), // Convert to percentage
+                            backgroundColor: '#e74a3b',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...chartOptions,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Impact Score (%)'
+                                },
+                                max: 100
+                            }
+                        }
+                    }
+                }
+            );
+
+            // Client Sentiment Chart
+            const clientSentimentData = {
+                positive: 0,
+                neutral: 0,
+                uncomfortable: 0,
+                annoyed: 0,
+                frustrated: 0,
+                very_frustrated: 0
+            };
+
+            {% for creator, metrics in analysis.client_metrics.items %}
+                {% if metrics.sentiment > 0.3 %}
+                    clientSentimentData.positive += 1;
+                {% elif metrics.sentiment >= 0 %}
+                    clientSentimentData.neutral += 1;
+                {% elif metrics.sentiment >= -0.2 %}
+                    clientSentimentData.uncomfortable += 1;
+                {% elif metrics.sentiment >= -0.5 %}
+                    clientSentimentData.annoyed += 1;
+                {% elif metrics.sentiment >= -0.8 %}
+                    clientSentimentData.frustrated += 1;
+                {% else %}
+                    clientSentimentData.very_frustrated += 1;
+                {% endif %}
+            {% endfor %}
+
+            new Chart(
+                document.getElementById('clientSentimentChart'),
+                {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Positive', 'Neutral', 'Uncomfortable', 'Annoyed', 'Frustrated', 'Very Frustrated'],
+                        datasets: [{
+                            data: [
+                                clientSentimentData.positive,
+                                clientSentimentData.neutral,
+                                clientSentimentData.uncomfortable,
+                                clientSentimentData.annoyed,
+                                clientSentimentData.frustrated,
+                                clientSentimentData.very_frustrated
+                            ],
+                            backgroundColor: ['#1cc88a', '#4e73df', '#f6c23e', '#fd7e14', '#e74a3b', '#990000'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...chartOptions,
+                        plugins: {
+                            ...chartOptions.plugins,
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+
+            // Resolution Time Chart
+            new Chart(
+                document.getElementById('resolutionTimeChart'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: clientImpactData.map(item => item.creator),
+                        datasets: [{
+                            label: 'Avg Resolution Time (Days)',
+                            data: clientImpactData.map(item => item.resolution),
+                            backgroundColor: '#4e73df',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...chartOptions,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Days'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+
+
+        {% endif %}
+
+        // Restore scroll position after all charts are initialized
+        setTimeout(() => {
+            window.scrollTo({
+                top: scrollPosition,
+                behavior: 'auto'
+            });
+        }, 100);
+    });
+</script>
+{% endblock %}

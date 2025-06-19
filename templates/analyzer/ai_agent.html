@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Agent - Vermeg Insights{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: 70vh;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        background: #fff;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #e31937, #c41230);
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem 0.5rem 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        background: #f8f9fa;
+    }
+
+    .message {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .message.user {
+        justify-content: flex-end;
+    }
+
+    .message.ai {
+        justify-content: flex-start;
+    }
+
+    .message-content {
+        max-width: 70%;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        word-wrap: break-word;
+    }
+
+    .message.user .message-content {
+        background: #e31937;
+        color: white;
+        border-bottom-right-radius: 0.25rem;
+    }
+
+    .message.ai .message-content {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-bottom-left-radius: 0.25rem;
+    }
+
+    .chat-input {
+        border-top: 1px solid #dee2e6;
+        padding: 1rem;
+        background: white;
+        border-radius: 0 0 0.5rem 0.5rem;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .typing-indicator {
+        display: none;
+        padding: 0.5rem 1rem;
+        font-style: italic;
+        color: #6c757d;
+    }
+
+    .welcome-message {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+    }
+
+    .welcome-message .icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #e31937;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h5 class="mb-0">AI Business Analyst</h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-light btn-sm" onclick="showRAGStatus()" title="Knowledge Base Status">
+                    <i class="fas fa-database me-1"></i>Knowledge Base
+                </button>
+                <button class="btn btn-outline-light btn-sm" onclick="refreshKnowledgeBase()" title="Refresh Knowledge Base">
+                    <i class="fas fa-sync me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <h4>👋 Welcome to AI Business Analyst</h4>
+                <p>I can help you analyze client data, identify trends, and provide actionable insights.</p>
+                <p>Try asking me about:</p>
+                <ul class="list-unstyled">
+                    <li>📊 Client performance metrics</li>
+                    <li>📈 Business trends and patterns</li>
+                    <li>📧 Professional email drafting</li>
+                    <li>💡 Strategic recommendations</li>
+                </ul>
+            </div>
+            
+            <div class="typing-indicator" style="display: none;">
+                <span>AI is thinking</span>
+                <span class="typing-dots">...</span>
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            {% csrf_token %}
+            <textarea id="messageInput" 
+                      class="form-control" 
+                      placeholder="Type your message... (Press Enter to send)" 
+                      rows="1"
+                      onkeypress="handleKeyPress(event)"></textarea>
+            <button class="btn btn-primary" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Include marked.js for markdown parsing -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+{% block extra_js %}
+<script>
+let currentSessionId = null;
+
+function getCsrfToken() {
+    const token = document.querySelector('meta[name="csrf-token"]')?.content ||
+                 document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    if (!token) throw new Error('CSRF token not found');
+    return token;
+}
+
+function showTypingIndicator() {
+    const indicator = document.querySelector('.typing-indicator');
+    if (indicator) indicator.style.display = 'block';
+}
+
+function hideTypingIndicator() {
+    const indicator = document.querySelector('.typing-indicator');
+    if (indicator) indicator.style.display = 'none';
+}
+
+function hideWelcomeMessage() {
+    const welcome = document.querySelector('.welcome-message');
+    if (welcome) welcome.style.display = 'none';
+}
+
+function scrollToBottom() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addMessageToChat(message, isUser = false, ragMetadata = null) {
+    hideWelcomeMessage();
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+
+    if (isUser) {
+        contentDiv.textContent = message;
+    } else {
+        contentDiv.innerHTML = marked.parse(message);
+
+        // Add RAG metadata if available
+        if (ragMetadata && ragMetadata.rag_enabled) {
+            const metadataDiv = document.createElement('div');
+            metadataDiv.className = 'rag-metadata mt-2';
+
+            let metadataHtml = '<small class="text-muted">';
+
+            // Show AI mode
+            if (ragMetadata.rag_enabled) {
+                metadataHtml += '<i class="fas fa-database me-1"></i>Enhanced with knowledge base';
+
+                // Show confidence if available
+                if (ragMetadata.rag_confidence) {
+                    const confidence = Math.round(ragMetadata.rag_confidence * 100);
+                    metadataHtml += ` (${confidence}% confidence)`;
+                }
+
+                // Show number of sources
+                if (ragMetadata.rag_sources && ragMetadata.rag_sources.length > 0) {
+                    metadataHtml += ` • ${ragMetadata.rag_sources.length} data source(s)`;
+                }
+            }
+
+            metadataHtml += '</small>';
+            metadataDiv.innerHTML = metadataHtml;
+            contentDiv.appendChild(metadataDiv);
+        }
+    }
+
+    messageDiv.appendChild(contentDiv);
+    document.getElementById('chatMessages').appendChild(messageDiv);
+    scrollToBottom();
+}
+
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    
+    if (!message) return;
+    
+    try {
+        messageInput.disabled = true;
+        addMessageToChat(message, true);
+        showTypingIndicator();
+        
+        const response = await fetch('/api/chat/message/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                message: message,
+                session_id: currentSessionId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        currentSessionId = data.session_id;
+        addMessageToChat(data.response, false, data.rag_metadata);
+
+        messageInput.value = '';
+        
+    } catch (error) {
+        console.error('Error:', error);
+        addMessageToChat('⚠️ ' + error.message);
+    } finally {
+        messageInput.disabled = false;
+        hideTypingIndicator();
+        messageInput.focus();
+    }
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+// RAG Management Functions
+async function showRAGStatus() {
+    try {
+        const response = await fetch('/api/rag/stats/', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCsrfToken()
+            }
+        });
+
+        const data = await response.json();
+
+        let statusMessage = '📊 Knowledge Base Status:\n\n';
+
+        if (data.rag_available) {
+            const stats = data.collection_stats;
+            const sources = data.data_sources;
+
+            statusMessage += `✅ Status: Active\n`;
+            statusMessage += `📄 Total Documents: ${stats.total_documents}\n`;
+            statusMessage += `👤 User: ${stats.user}\n\n`;
+            statusMessage += `📈 Data Sources:\n`;
+            statusMessage += `• Analysis Results: ${sources.analysis_results || 0}\n`;
+            statusMessage += `• Survey Analyses: ${sources.survey_analyses || 0}\n`;
+            statusMessage += `• Client Notes: ${sources.client_notes || 0}\n`;
+            statusMessage += `• Total Sources: ${sources.total_data_sources || 0}`;
+        } else {
+            statusMessage += `❌ Status: Not Available\n`;
+            statusMessage += `Error: ${data.error || 'RAG service not initialized'}`;
+        }
+
+        addMessageToChat(statusMessage);
+
+    } catch (error) {
+        console.error('Error getting RAG status:', error);
+        addMessageToChat('⚠️ Error getting knowledge base status: ' + error.message);
+    }
+}
+
+async function refreshKnowledgeBase() {
+    try {
+        addMessageToChat('🔄 Refreshing knowledge base with latest data...');
+
+        const response = await fetch('/api/rag/comprehensive-index/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                force: true
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            let successMessage = '✅ Knowledge base refreshed successfully!\n\n';
+            successMessage += `📊 Indexing Results:\n`;
+            successMessage += `• Documents Processed: ${data.documents_processed}\n`;
+            successMessage += `• Analysis Results: ${data.stats.analysis_results}\n`;
+            successMessage += `• Survey Analyses: ${data.stats.survey_analyses}\n`;
+            successMessage += `• Client Notes: ${data.stats.client_notes}\n`;
+            successMessage += `• Total in Database: ${data.collection_stats.total_documents}\n\n`;
+            successMessage += `🎯 Your AI assistant now has access to all your latest data!`;
+
+            addMessageToChat(successMessage);
+        } else {
+            addMessageToChat('❌ Failed to refresh knowledge base: ' + data.error);
+        }
+
+    } catch (error) {
+        console.error('Error refreshing knowledge base:', error);
+        addMessageToChat('⚠️ Error refreshing knowledge base: ' + error.message);
+    }
+}
+
+// Initialize the chat interface
+document.addEventListener('DOMContentLoaded', function() {
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) messageInput.focus();
+
+    // Show initial RAG status
+    setTimeout(() => {
+        showRAGStatus();
+    }, 1000);
+});
+</script>
+{% endblock %}
+{% endblock %}

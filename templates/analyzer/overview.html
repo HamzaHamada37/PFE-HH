@@ -1,0 +1,461 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome to Vermeg Insights{% endblock %}
+
+{% block extra_css %}
+<style>
+    .overview-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+
+    .overview-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .metric-card {
+        border-left: 4px solid var(--primary);
+        transition: transform 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateX(5px);
+    }
+
+    .formula-box {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .formula-component {
+        margin-bottom: 10px;
+        padding-left: 20px;
+    }
+
+    .welcome-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    .section-divider {
+        width: 50px;
+        height: 4px;
+        background-color: var(--primary);
+        margin: 15px 0;
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: var(--primary);
+        margin-bottom: 15px;
+    }
+
+    .metric-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: rgba(227, 25, 55, 0.1);
+        color: var(--primary);
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    .step-number {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        border-radius: 50%;
+        background-color: var(--primary);
+        color: white;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+
+    .workflow-step {
+        margin-bottom: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="fw-bold mb-3">Welcome to Vermeg Insights</h1>
+                <div class="section-divider"></div>
+                <p class="lead text-secondary mb-4">
+                    Unlock the power of advanced NLP analysis to gain valuable insights from your JIRA data.
+                    Our platform helps you understand client sentiment, prioritize issues, and make data-driven decisions.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{% url 'upload_file' %}" class="btn btn-danger">
+                        <i class="fas fa-upload me-2"></i>Upload JIRA Data
+                    </a>
+                    <a href="{% url 'client_overview' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-chart-line me-2"></i>View Client Metrics
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-center">
+                <i class="fas fa-chart-pie feature-icon" style="font-size: 8rem; color: var(--primary);"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- NLP Analysis Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="fw-bold mb-3">Understanding Our NLP Analysis</h2>
+            <div class="section-divider"></div>
+            <p class="text-secondary mb-4">
+                Our platform uses advanced Natural Language Processing (NLP) techniques to analyze JIRA tickets and extract meaningful insights.
+                Here's how our analysis works:
+            </p>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card overview-card h-100">
+                <div class="card-body text-center">
+                    <div class="metric-icon mx-auto">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h4 class="card-title">Sentiment Analysis</h4>
+                    <p class="card-text">
+                        We analyze the text content of JIRA tickets to determine the sentiment expressed by clients.
+                        This helps identify potential issues and areas of concern.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card overview-card h-100">
+                <div class="card-body text-center">
+                    <div class="metric-icon mx-auto">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h4 class="card-title">Issue Classification</h4>
+                    <p class="card-text">
+                        Our system categorizes issues based on their type and priority, allowing you to understand
+                        the distribution and impact of different issue types.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card overview-card h-100">
+                <div class="card-body text-center">
+                    <div class="metric-icon mx-auto">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h4 class="card-title">Resolution Time Analysis</h4>
+                    <p class="card-text">
+                        We track and analyze resolution times for tickets, helping you identify bottlenecks
+                        and improve your team's efficiency in addressing client issues.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Features Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="fw-bold mb-3">Advanced Features</h2>
+            <div class="section-divider"></div>
+            <p class="text-secondary mb-4">
+                Explore our advanced analytics and AI-powered features designed to provide deeper insights
+                into your team performance and enhance your workflow with intelligent assistance.
+            </p>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card overview-card h-100">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-friends text-danger me-2"></i>Team Overview Analytics
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-secondary mb-3">
+                        Comprehensive team performance analysis through survey data and KPI tracking.
+                    </p>
+
+                    <h6 class="fw-bold mb-2">Key Features:</h6>
+                    <ul class="list-unstyled mb-3">
+                        <li class="mb-2">
+                            <i class="fas fa-chart-radar text-danger me-2"></i>
+                            <strong>KPI Dashboard:</strong> Track psychological safety, work environment, client service, and team collaboration metrics
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-file-excel text-danger me-2"></i>
+                            <strong>Excel Integration:</strong> Upload survey data (.xlsx/.xls) with automatic validation and processing
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-comments text-danger me-2"></i>
+                            <strong>Feedback Analysis:</strong> Individual response review with filtering, search, and theme extraction
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-file-pdf text-danger me-2"></i>
+                            <strong>PDF Reports:</strong> Generate comprehensive team performance reports with strategic recommendations
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-chart-pie text-danger me-2"></i>
+                            <strong>Interactive Charts:</strong> Visualize data with Chart.js including radar, bar, and pie charts
+                        </li>
+                    </ul>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'team_overview' %}" class="btn btn-danger btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i>Explore Team Analytics
+                        </a>
+                        <span class="badge bg-success">Survey Data Required</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card overview-card h-100">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-robot text-danger me-2"></i>AI Agent Assistant
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-secondary mb-3">
+                        Intelligent AI-powered assistant for data analysis, insights generation, and workflow automation.
+                    </p>
+
+                    <h6 class="fw-bold mb-2">Key Features:</h6>
+                    <ul class="list-unstyled mb-3">
+                        <li class="mb-2">
+                            <i class="fas fa-brain text-danger me-2"></i>
+                            <strong>Smart Analysis:</strong> AI-powered insights from your JIRA and survey data using advanced NLP
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-comments-alt text-danger me-2"></i>
+                            <strong>Interactive Chat:</strong> Natural language queries about your data with contextual responses
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-lightbulb text-danger me-2"></i>
+                            <strong>Recommendations:</strong> Automated suggestions for improving team performance and client satisfaction
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-search text-danger me-2"></i>
+                            <strong>Data Exploration:</strong> Ask questions about trends, patterns, and specific metrics in plain English
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-cogs text-danger me-2"></i>
+                            <strong>Workflow Automation:</strong> Streamline repetitive analysis tasks with intelligent automation
+                        </li>
+                    </ul>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'ai_agent' %}" class="btn btn-danger btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i>Try AI Assistant
+                        </a>
+                        <span class="badge bg-info">Powered by Llama 3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Metrics Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="fw-bold mb-3">Client Metrics Logic</h2>
+            <div class="section-divider"></div>
+            <p class="text-secondary mb-4">
+                Our platform calculates a comprehensive Client Impact score based on multiple factors.
+                This score helps you prioritize clients and issues that require immediate attention.
+            </p>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">Customer Experience Score Formula</h4>
+                </div>
+                <div class="card-body">
+                    <div class="formula-box">
+                        <p class="fw-bold mb-3">Customer Experience Score = </p>
+                        <div class="formula-component">
+                            <span class="text-danger fw-bold">50%</span> × Sentiment +
+                        </div>
+                        <div class="formula-component">
+                            <span class="text-danger fw-bold">15%</span> × Priority Impact +
+                        </div>
+                        <div class="formula-component">
+                            <span class="text-danger fw-bold">20%</span> × Ticket Impact +
+                        </div>
+                        <div class="formula-component">
+                            <span class="text-danger fw-bold">15%</span> × Issue Type Impact
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <p class="fw-bold">Where:</p>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <div class="metric-card p-2">
+                                    <strong>Sentiment:</strong> Derived from NLP analysis of ticket descriptions and comments
+                                </div>
+                            </li>
+                            <li class="mb-2">
+                                <div class="metric-card p-2">
+                                    <strong>Priority Impact:</strong> Based on the priority levels of tickets (High, Medium, Low)
+                                </div>
+                            </li>
+                            <li class="mb-2">
+                                <div class="metric-card p-2">
+                                    <strong>Ticket Impact:</strong> Calculated from the number and frequency of tickets
+                                </div>
+                            </li>
+                            <li class="mb-2">
+                                <div class="metric-card p-2">
+                                    <strong>Issue Type Impact:</strong> Derived from the types of issues reported (Bug, Feature, Support)
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">How to Use Client Metrics</h4>
+                </div>
+                <div class="card-body">
+                    <div class="workflow-step">
+                        <span class="step-number">1</span>
+                        <strong>Upload JIRA Data</strong>
+                        <p class="mt-2 mb-0 text-secondary">
+                            Start by uploading your JIRA export files through our secure upload interface.
+                            We support various JIRA export formats.
+                        </p>
+                    </div>
+
+                    <div class="workflow-step">
+                        <span class="step-number">2</span>
+                        <strong>Process and Analyze</strong>
+                        <p class="mt-2 mb-0 text-secondary">
+                            Our system will automatically process the data, apply NLP analysis,
+                            and calculate client metrics.
+                        </p>
+                    </div>
+
+                    <div class="workflow-step">
+                        <span class="step-number">3</span>
+                        <strong>Review Client Overview</strong>
+                        <p class="mt-2 mb-0 text-secondary">
+                            Explore the Client Overview dashboard to see metrics for all clients,
+                            sorted by impact score.
+                        </p>
+                    </div>
+
+                    <div class="workflow-step">
+                        <span class="step-number">4</span>
+                        <strong>Drill Down for Details</strong>
+                        <p class="mt-2 mb-0 text-secondary">
+                            Click on individual clients to see detailed metrics, sentiment trends,
+                            and specific issues that require attention.
+                        </p>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links Section -->
+    <div class="row">
+        <div class="col-12">
+            <h2 class="fw-bold mb-3">Quick Links</h2>
+            <div class="section-divider"></div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card overview-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-upload feature-icon"></i>
+                    <h5>Upload Data</h5>
+                    <p class="text-secondary">Upload your JIRA export files</p>
+                    <a href="{% url 'upload_file' %}" class="btn btn-sm btn-outline-danger">Go</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card overview-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-tachometer-alt feature-icon"></i>
+                    <h5>Dashboard</h5>
+                    <p class="text-secondary">View your analysis dashboard</p>
+                    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-danger">Go</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card overview-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-users feature-icon"></i>
+                    <h5>Client Overview</h5>
+                    <p class="text-secondary">See all client metrics</p>
+                    <a href="{% url 'client_overview' %}" class="btn btn-sm btn-outline-danger">Go</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card overview-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-user-friends feature-icon"></i>
+                    <h5>Team Overview</h5>
+                    <p class="text-secondary">Analyze team survey data and KPIs</p>
+                    <a href="{% url 'team_overview' %}" class="btn btn-sm btn-outline-danger">Go</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card overview-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-robot feature-icon"></i>
+                    <h5>AI Agent</h5>
+                    <p class="text-secondary">Chat with AI for data insights</p>
+                    <a href="{% url 'ai_agent' %}" class="btn btn-sm btn-outline-danger">Go</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

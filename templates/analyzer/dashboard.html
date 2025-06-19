@@ -1,0 +1,1378 @@
+{% extends 'base.html' %}
+{% load analyzer_filters %}
+{% load static %}
+
+{% block title %}Dashboard | Vermeg Analysis{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page header -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 5px; height: 25px; background-color: var(--primary);"></div>
+                <h1 class="fw-bold mb-0">Dashboard</h1>
+            </div>
+            <p class="text-secondary mt-2 mb-0">Manage and analyze your data files</p>
+        </div>
+        <div class="d-flex gap-2">
+            <!-- Feature 1: Export buttons -->
+            {% if jira_files %}
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-download me-2"></i>Export
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                    <li><a class="dropdown-item" href="{% url 'export_csv' %}">
+                        <i class="fas fa-file-csv me-2"></i>Export as CSV
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'export_excel' %}">
+                        <i class="fas fa-file-excel me-2"></i>Export as Excel
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'export_pdf' %}">
+                        <i class="fas fa-file-pdf me-2"></i>Export as PDF
+                    </a></li>
+                </ul>
+            </div>
+            {% endif %}
+            <a href="{% url 'upload_file' %}" class="btn btn-danger">
+                <i class="fas fa-upload me-2"></i>Upload New File
+            </a>
+        </div>
+    </div>
+
+    {% if jira_files %}
+    <!-- Stats overview -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-file-alt text-danger fa-2x"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ jira_files|length }}</h3>
+                        <p class="text-secondary mb-0">Total Files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-check-circle text-danger fa-2x"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ jira_files|count_processed }}</h3>
+                        <p class="text-secondary mb-0">Processed Files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-users text-danger fa-2x"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ client_count|default:"0" }}</h3>
+                        <p class="text-secondary mb-0">Total Clients</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-ticket-alt text-danger fa-2x"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ total_tickets|default:"0" }}</h3>
+                        <p class="text-secondary mb-0">Total Tickets</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Experience Prioritization Dashboard -->
+    {% if sentiment_analysis_data or client_metrics_summary %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Client Experience Prioritization</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-7">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header py-3">
+                            <h6 class="mb-0">
+                                <i class="fas fa-exclamation-triangle text-danger me-2"></i>Top Negative Sentiment Clients
+                            </h6>
+                            <small class="text-muted">Current negative sentiment across all analyses</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0" id="negativeSentimentTable">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th style="color: white;">Client</th>
+                                            <th style="color: white;">Current Sentiment</th>
+                                            <th style="color: white;">Trend</th>
+                                            <th style="color: white;">Last Update</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="negativeSentimentTableBody">
+                                        <!-- Table content will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header py-3">
+                            <h6 class="mb-0">Client Experience Trend</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="clientImpactTrendChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Comparison Feature -->
+            {% if has_comparisons %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card border-0 bg-light">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-balance-scale text-primary me-2"></i>Analysis Comparison
+                            </h6>
+                            {% if comparison_data %}
+                            <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear Comparison
+                            </a>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% if not comparison_data %}
+                            <!-- Comparison Selection -->
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <p class="text-muted mb-3">Compare two analyses to identify trends and changes in client metrics.</p>
+                                    <form method="get" class="d-flex align-items-end gap-3">
+                                        <div class="flex-grow-1">
+                                            <label for="compare_current" class="form-label">Current Analysis:</label>
+                                            <select name="compare_current" id="compare_current" class="form-select">
+                                                <option value="">Choose current analysis...</option>
+                                                {% for analysis in available_analyses %}
+                                                <option value="{{ analysis.id }}">
+                                                    {{ analysis.jira_file.file.name|truncatechars:30 }}
+                                                    {% if analysis.jira_file.analysis_date %}
+                                                        ({{ analysis.jira_file.analysis_date|date:"M j, Y" }})
+                                                    {% else %}
+                                                        ({{ analysis.created_at|date:"M j, Y" }})
+                                                    {% endif %}
+                                                    - {{ analysis.client_metrics|length }} client{{ analysis.client_metrics|length|pluralize }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <label for="compare_with" class="form-label">Compare With:</label>
+                                            <select name="compare_with" id="compare_with" class="form-select">
+                                                <option value="">Choose comparison analysis...</option>
+                                                {% for analysis in available_analyses %}
+                                                <option value="{{ analysis.id }}">
+                                                    {{ analysis.jira_file.file.name|truncatechars:30 }}
+                                                    {% if analysis.jira_file.analysis_date %}
+                                                        ({{ analysis.jira_file.analysis_date|date:"M j, Y" }})
+                                                    {% else %}
+                                                        ({{ analysis.created_at|date:"M j, Y" }})
+                                                    {% endif %}
+                                                    - {{ analysis.client_metrics|length }} client{{ analysis.client_metrics|length|pluralize }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-chart-line me-1"></i>Compare
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="bg-white rounded p-3 border">
+                                        <h6 class="fw-bold mb-2">Quick Comparison Options:</h6>
+                                        <div class="d-grid gap-2">
+                                            {% if available_analyses|length >= 2 %}
+                                            <a href="?compare_current={{ available_analyses.0.id }}&compare_with={{ available_analyses.1.id }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-clock me-1"></i>Latest vs. Previous
+                                            </a>
+                                            {% endif %}
+                                            {% if available_analyses|length >= 3 %}
+                                            <a href="?compare_current={{ available_analyses.0.id }}&compare_with={{ available_analyses.2.id }}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-history me-1"></i>Latest vs. 3rd Recent
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <!-- Comparison Results -->
+                            {% if comparison_data.has_common_clients %}
+                            <div class="comparison-results">
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="text-center">
+                                            <h6 class="fw-bold text-primary">Current Analysis</h6>
+                                            <p class="text-muted mb-1">{{ current_analysis.jira_file.file.name|truncatechars:40 }}</p>
+                                            <small class="text-secondary">
+                                                {% if current_analysis.jira_file.analysis_date %}
+                                                    {{ current_analysis.jira_file.analysis_date|date:"F j, Y" }}
+                                                {% else %}
+                                                    {{ current_analysis.created_at|date:"F j, Y" }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-center">
+                                            <h6 class="fw-bold text-secondary">Comparison Analysis</h6>
+                                            <p class="text-muted mb-1">{{ comparison_analysis.jira_file.file.name|truncatechars:40 }}</p>
+                                            <small class="text-secondary">
+                                                {% if comparison_analysis.jira_file.analysis_date %}
+                                                    {{ comparison_analysis.jira_file.analysis_date|date:"F j, Y" }}
+                                                {% else %}
+                                                    {{ comparison_analysis.created_at|date:"F j, Y" }}
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Overall Changes Summary -->
+                                {% if comparison_data.overall_changes %}
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <div class="card border-0 bg-white h-100">
+                                            <div class="card-body text-center">
+                                                <h6 class="text-muted mb-2">Avg Sentiment Change</h6>
+                                                {% with change=comparison_data.overall_changes.avg_sentiment_change %}
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    {% if change > 0.2 %}
+                                                        <span class="fs-4 me-2">✅</span>
+                                                        <span class="fw-bold text-success">+{{ change|floatformat:3 }}</span>
+                                                    {% elif change < -0.2 %}
+                                                        <span class="fs-4 me-2">⚠️</span>
+                                                        <span class="fw-bold text-danger">{{ change|floatformat:3 }}</span>
+                                                    {% elif change > 0.05 %}
+                                                        <span class="fs-4 me-2">🟢</span>
+                                                        <span class="fw-bold text-success">+{{ change|floatformat:3 }}</span>
+                                                    {% elif change < -0.05 %}
+                                                        <span class="fs-4 me-2">🔴</span>
+                                                        <span class="fw-bold text-warning">{{ change|floatformat:3 }}</span>
+                                                    {% else %}
+                                                        <span class="fs-4 me-2">⚪️</span>
+                                                        <span class="fw-bold text-muted">{{ change|floatformat:3 }}</span>
+                                                    {% endif %}
+                                                </div>
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card border-0 bg-white h-100">
+                                            <div class="card-body text-center">
+                                                <h6 class="text-muted mb-2">Avg Resolution Time Change</h6>
+                                                {% with change=comparison_data.overall_changes.avg_resolution_change %}
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    {% if change > 2.0 %}
+                                                        <span class="fs-4 me-2">⚠️</span>
+                                                        <span class="fw-bold text-danger">+{{ change|floatformat:1 }}d</span>
+                                                    {% elif change < -2.0 %}
+                                                        <span class="fs-4 me-2">✅</span>
+                                                        <span class="fw-bold text-success">{{ change|floatformat:1 }}d</span>
+                                                    {% elif change > 0.5 %}
+                                                        <span class="fs-4 me-2">🔴</span>
+                                                        <span class="fw-bold text-warning">+{{ change|floatformat:1 }}d</span>
+                                                    {% elif change < -0.5 %}
+                                                        <span class="fs-4 me-2">🟢</span>
+                                                        <span class="fw-bold text-success">{{ change|floatformat:1 }}d</span>
+                                                    {% else %}
+                                                        <span class="fs-4 me-2">⚪️</span>
+                                                        <span class="fw-bold text-muted">{{ change|floatformat:1 }}d</span>
+                                                    {% endif %}
+                                                </div>
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card border-0 bg-white h-100">
+                                            <div class="card-body text-center">
+                                                <h6 class="text-muted mb-2">Avg Experience Impact Change</h6>
+                                                {% with change=comparison_data.overall_changes.avg_impact_change %}
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    {% if change > 0.1 %}
+                                                        <span class="fs-4 me-2">⚠️</span>
+                                                        <span class="fw-bold text-danger">+{{ change|floatformat:3 }}</span>
+                                                    {% elif change < -0.1 %}
+                                                        <span class="fs-4 me-2">✅</span>
+                                                        <span class="fw-bold text-success">{{ change|floatformat:3 }}</span>
+                                                    {% elif change > 0.03 %}
+                                                        <span class="fs-4 me-2">🔴</span>
+                                                        <span class="fw-bold text-warning">+{{ change|floatformat:3 }}</span>
+                                                    {% elif change < -0.03 %}
+                                                        <span class="fs-4 me-2">🟢</span>
+                                                        <span class="fw-bold text-success">{{ change|floatformat:3 }}</span>
+                                                    {% else %}
+                                                        <span class="fs-4 me-2">⚪️</span>
+                                                        <span class="fw-bold text-muted">{{ change|floatformat:3 }}</span>
+                                                    {% endif %}
+                                                </div>
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Client-by-Client Comparison -->
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Client</th>
+                                                <th class="text-center">Experience Impact</th>
+                                                <th class="text-center">Resolution Time</th>
+                                                <th class="text-center">Sentiment</th>
+                                                <th class="text-center">Tickets</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for client, comp in comparison_data.client_comparisons.items %}
+                                            <tr>
+                                                <td class="fw-bold">{{ client }}</td>
+
+                                                <!-- Experience Impact Change -->
+                                                <td class="text-center">
+                                                    {% with change=comp.client_impact_change %}
+                                                    {% if change > 0.1 %}
+                                                        <span class="fs-5">⚠️</span>
+                                                        <div class="small text-danger">+{{ change|floatformat:3 }}</div>
+                                                    {% elif change < -0.1 %}
+                                                        <span class="fs-5">✅</span>
+                                                        <div class="small text-success">{{ change|floatformat:3 }}</div>
+                                                    {% elif change > 0.03 %}
+                                                        <span class="fs-5">🔴</span>
+                                                        <div class="small text-warning">+{{ change|floatformat:3 }}</div>
+                                                    {% elif change < -0.03 %}
+                                                        <span class="fs-5">🟢</span>
+                                                        <div class="small text-success">{{ change|floatformat:3 }}</div>
+                                                    {% else %}
+                                                        <span class="fs-5">⚪️</span>
+                                                        <div class="small text-muted">{{ change|floatformat:3 }}</div>
+                                                    {% endif %}
+                                                    {% endwith %}
+                                                </td>
+
+                                                <!-- Resolution Time Change -->
+                                                <td class="text-center">
+                                                    {% with change=comp.resolution_time_change %}
+                                                    {% if change > 2.0 %}
+                                                        <span class="fs-5">⚠️</span>
+                                                        <div class="small text-danger">+{{ change|floatformat:1 }}d</div>
+                                                    {% elif change < -2.0 %}
+                                                        <span class="fs-5">✅</span>
+                                                        <div class="small text-success">{{ change|floatformat:1 }}d</div>
+                                                    {% elif change > 0.5 %}
+                                                        <span class="fs-5">🔴</span>
+                                                        <div class="small text-warning">+{{ change|floatformat:1 }}d</div>
+                                                    {% elif change < -0.5 %}
+                                                        <span class="fs-5">🟢</span>
+                                                        <div class="small text-success">{{ change|floatformat:1 }}d</div>
+                                                    {% else %}
+                                                        <span class="fs-5">⚪️</span>
+                                                        <div class="small text-muted">{{ change|floatformat:1 }}d</div>
+                                                    {% endif %}
+                                                    {% endwith %}
+                                                </td>
+
+                                                <!-- Sentiment Change -->
+                                                <td class="text-center">
+                                                    {% with change=comp.sentiment_change %}
+                                                    {% if change < -0.2 %}
+                                                        <span class="fs-5">⚠️</span>
+                                                        <div class="small text-danger">{{ change|floatformat:3 }}</div>
+                                                    {% elif change > 0.2 %}
+                                                        <span class="fs-5">✅</span>
+                                                        <div class="small text-success">+{{ change|floatformat:3 }}</div>
+                                                    {% elif change < -0.05 %}
+                                                        <span class="fs-5">🔴</span>
+                                                        <div class="small text-warning">{{ change|floatformat:3 }}</div>
+                                                    {% elif change > 0.05 %}
+                                                        <span class="fs-5">🟢</span>
+                                                        <div class="small text-success">+{{ change|floatformat:3 }}</div>
+                                                    {% else %}
+                                                        <span class="fs-5">⚪️</span>
+                                                        <div class="small text-muted">{{ change|floatformat:3 }}</div>
+                                                    {% endif %}
+                                                    {% endwith %}
+                                                </td>
+
+                                                <!-- Tickets Change -->
+                                                <td class="text-center">
+                                                    {% with change=comp.tickets_change %}
+                                                    {% if change > 20 %}
+                                                        <span class="fs-5">⚠️</span>
+                                                        <div class="small text-danger">+{{ change|floatformat:0 }}</div>
+                                                    {% elif change < -20 %}
+                                                        <span class="fs-5">✅</span>
+                                                        <div class="small text-success">{{ change|floatformat:0 }}</div>
+                                                    {% elif change > 5 %}
+                                                        <span class="fs-5">🔴</span>
+                                                        <div class="small text-warning">+{{ change|floatformat:0 }}</div>
+                                                    {% elif change < -5 %}
+                                                        <span class="fs-5">🟢</span>
+                                                        <div class="small text-success">{{ change|floatformat:0 }}</div>
+                                                    {% else %}
+                                                        <span class="fs-5">⚪️</span>
+                                                        <div class="small text-muted">{{ change|floatformat:0 }}</div>
+                                                    {% endif %}
+                                                    {% endwith %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <strong>Legend:</strong>
+                                        ⚠️ Extreme negative change • ✅ Extreme positive change •
+                                        🔴 Negative change • 🟢 Positive change • ⚪️ Minimal change
+                                    </small>
+                                </div>
+                            </div>
+                            {% else %}
+                            <!-- No Common Clients Message -->
+                            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                                <i class="fas fa-exclamation-triangle me-3"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-1">No Common Clients Found</h6>
+                                    <p class="mb-0">The selected analyses do not have any clients in common. Please select different analyses that share at least one client for meaningful comparison.</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Actionable Insights Section -->
+            {% if actionable_insights %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card-header bg-white py-2 mb-3 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Actionable Insights</h6>
+                        <span class="badge bg-danger">New</span>
+                    </div>
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="row">
+                                {% for insight in actionable_insights %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="fas fa-lightbulb text-warning fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <p class="mb-0">{{ insight }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="row mb-4">
+            <div class="col">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elif message.tags == 'info' %}
+                            <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Files section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <div class="me-3" style="width: 5px; height: 25px; background-color: var(--primary);"></div>
+            <h2 class="fs-4 fw-bold mb-0">Your Files</h2>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-light dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-sort me-1"></i> Sort by
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                <li><a class="dropdown-item" href="#" id="sort-newest"><i class="fas fa-calendar-alt me-2"></i>Newest first</a></li>
+                <li><a class="dropdown-item" href="#" id="sort-oldest"><i class="fas fa-calendar-alt me-2"></i>Oldest first</a></li>
+                <li><a class="dropdown-item" href="#" id="sort-name"><i class="fas fa-font me-2"></i>Name</a></li>
+                <li><a class="dropdown-item" href="#" id="sort-status"><i class="fas fa-tasks me-2"></i>Status</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="row g-4" id="files-container">
+        {% for file in jira_files %}
+        <div class="col-md-6 col-lg-4 mb-4 file-card"
+             data-date="{{ file.uploaded_at|date:'U' }}"
+             data-name="{{ file.file.name }}"
+             data-status="{{ file.processed|yesno:'processed,pending' }}">
+            <div class="card h-100 border-0 shadow-sm rounded">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 text-truncate">{{ file.get_filename|truncatechars:40 }}</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light rounded-circle" type="button" id="dropdownMenuButton{{ file.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ file.id }}">
+                            {% if file.processed and file.analysis_results.exists %}
+                            <li><a class="dropdown-item" href="{% url 'view_analysis' file.analysis_results.last.id %}"><i class="fas fa-chart-bar me-2"></i>View Analysis</a></li>
+                            {% endif %}
+                            {% if not file.processed %}
+                            <li><a class="dropdown-item" href="{% url 'process_file' file.id %}"><i class="fas fa-cogs me-2"></i>Process File</a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item text-danger" href="{% url 'delete_file' file.id %}" onclick="return confirm('Are you sure you want to delete this file? This action cannot be undone.');"><i class="fas fa-trash-alt me-2"></i>Delete</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="far fa-calendar-alt text-secondary me-2"></i>
+                            <span>{{ file.uploaded_at|date:"F j, Y" }}</span>
+                        </div>
+                        {% if file.analysis_date %}
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-filter text-primary me-2"></i>
+                            <span class="text-primary">Analysis Date: {{ file.analysis_date|date:"F j, Y" }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="d-flex align-items-center">
+                            <i class="far fa-file text-secondary me-2"></i>
+                            <span>{{ file.get_file_type_display }}</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        {% if file.processed %}
+                            <span class="badge bg-danger py-2 px-3">
+                                <i class="fas fa-check-circle me-1"></i> Processed
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary py-2 px-3">
+                                <i class="fas fa-hourglass-half me-1"></i> Pending
+                            </span>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                {% if file.processed and file.analysis_results.exists %}
+                                    <a href="{% url 'view_analysis' file.analysis_results.last.id %}" class="btn btn-danger">
+                                        <i class="fas fa-chart-bar me-1"></i> View Insights
+                                    </a>
+                                {% elif not file.processed %}
+                                    <a href="{% url 'process_file' file.id %}" class="btn btn-outline-danger">
+                                        <i class="fas fa-cogs me-1"></i> Process
+                                    </a>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'delete_file' file.id %}" class="btn btn-outline-secondary"
+                               onclick="return confirm('Are you sure you want to delete this file? This action cannot be undone.');">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty state -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <div class="mb-4">
+                <img src="{% static 'images/data-flow-image.png' %}" alt="No Files" class="img-fluid rounded-3 shadow" style="max-height: 200px;">
+            </div>
+            <h3 class="fw-bold mb-3">No Files Yet</h3>
+            <p class="text-secondary mb-4">Upload your first data file to get started with analysis and insights.</p>
+            <a href="{% url 'upload_file' %}" class="btn btn-danger btn-lg">
+                <i class="fas fa-upload me-2"></i>Upload Your First File
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prevent automatic scrolling by saving and restoring scroll position
+        const scrollPosition = window.scrollY;
+        // Sort functionality
+        const filesContainer = document.getElementById('files-container');
+        const sortNewest = document.getElementById('sort-newest');
+        const sortOldest = document.getElementById('sort-oldest');
+        const sortName = document.getElementById('sort-name');
+        const sortStatus = document.getElementById('sort-status');
+
+        if (!filesContainer) return;
+
+        function sortFiles(selector, ascending = true) {
+            const fileCards = Array.from(document.querySelectorAll('.file-card'));
+            fileCards.sort((a, b) => {
+                let valueA = a.getAttribute(selector);
+                let valueB = b.getAttribute(selector);
+
+                if (valueA < valueB) return ascending ? -1 : 1;
+                if (valueA > valueB) return ascending ? 1 : -1;
+                return 0;
+            });
+
+            // Clear and re-append in sorted order
+            filesContainer.innerHTML = '';
+            fileCards.forEach(card => filesContainer.appendChild(card));
+        }
+
+        if (sortNewest) {
+            sortNewest.addEventListener('click', function(e) {
+                e.preventDefault();
+                sortFiles('data-date', false);
+            });
+        }
+
+        if (sortOldest) {
+            sortOldest.addEventListener('click', function(e) {
+                e.preventDefault();
+                sortFiles('data-date', true);
+            });
+        }
+
+        if (sortName) {
+            sortName.addEventListener('click', function(e) {
+                e.preventDefault();
+                sortFiles('data-name', true);
+            });
+        }
+
+        if (sortStatus) {
+            sortStatus.addEventListener('click', function(e) {
+                e.preventDefault();
+                sortFiles('data-status', true);
+            });
+        }
+
+        // Client Experience Prioritization Dashboard
+        {% if sentiment_analysis_data or client_metrics_summary %}
+            const chartColors = [
+                '#e31937', // Primary red (VERMEG brand color)
+                '#333333', // Dark gray
+                '#20c997', // Teal
+                '#ffc107', // Warning yellow
+                '#fd7e14', // Orange
+                '#6610f2', // Purple
+                '#6f42c1', // Indigo
+                '#28a745', // Success green
+                '#17a2b8', // Info blue
+                '#dc3545', // Danger red
+            ];
+
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            };
+
+            // Function to populate the Top Negative Sentiment Clients table
+            function populateNegativeSentimentTable() {
+                const tableBody = document.getElementById('negativeSentimentTableBody');
+
+                // Check if table body element exists
+                if (!tableBody) {
+                    console.error('Table body element not found!');
+                    return;
+                }
+
+                // Get global sentiment data from backend
+                {% if sentiment_analysis_data %}
+                    const sentimentData = {{ sentiment_analysis_data|safe }};
+
+                    // Check if sentimentData exists and is an object
+                    if (!sentimentData || typeof sentimentData !== 'object' || Object.keys(sentimentData).length === 0) {
+                        console.log('No sentiment data available, showing empty table');
+                        tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No sentiment data available</td></tr>';
+                        return;
+                    }
+
+                    // Convert to array and filter for negative sentiment only, then sort by sentiment (most negative first)
+                    const negativeSentimentClients = Object.entries(sentimentData)
+                        .map(([client, data]) => {
+                            return {
+                                client: client,
+                                sentiment: data.current_sentiment,
+                                trend: data.trend,
+                                severity: data.severity,
+                                lastUpdate: data.last_update,
+                                tickets: data.tickets,
+                                resolutionTime: data.resolution_time,
+                                dataPoints: data.data_points
+                            };
+                        })
+                        .filter(client => client.sentiment < 0)  // Only negative sentiment
+                        .sort((a, b) => a.sentiment - b.sentiment);  // Most negative first
+
+                    // Check if we have any negative sentiment clients
+                    if (negativeSentimentClients.length === 0) {
+                        console.log('No clients with negative sentiment found');
+                        tableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No clients with negative sentiment</td></tr>';
+                        return;
+                    }
+
+                    // Helper function to get sentiment icon and label (matching client overview pages)
+                    function getSentimentDisplay(sentiment) {
+                        if (sentiment > 0.3) {
+                            return {
+                                icon: '<i class="fas fa-smile fa-lg text-success"></i>',
+                                label: 'Positive',
+                                class: 'sentiment-positive'
+                            };
+                        } else if (sentiment >= 0) {
+                            return {
+                                icon: '<i class="fas fa-meh fa-lg text-secondary"></i>',
+                                label: 'Neutral',
+                                class: 'sentiment-neutral'
+                            };
+                        } else if (sentiment >= -0.2) {
+                            return {
+                                icon: '<i class="fas fa-meh-rolling-eyes fa-lg text-warning"></i>',
+                                label: 'Uncomfortable',
+                                class: 'sentiment-uncomfortable'
+                            };
+                        } else if (sentiment >= -0.5) {
+                            return {
+                                icon: '<i class="fas fa-angry fa-lg" style="color: #fd7e14;"></i>',
+                                label: 'Annoyed',
+                                class: 'sentiment-annoyed'
+                            };
+                        } else if (sentiment >= -0.8) {
+                            return {
+                                icon: '<i class="fas fa-frown fa-lg text-danger"></i>',
+                                label: 'Frustrated',
+                                class: 'sentiment-frustrated'
+                            };
+                        } else {
+                            return {
+                                icon: '<i class="fas fa-dizzy fa-lg" style="color: #990000;"></i>',
+                                label: 'Very Frustrated',
+                                class: 'sentiment-very-frustrated'
+                            };
+                        }
+                    }
+
+                    // Helper function to get trend arrow
+                    function getTrendArrow(trend) {
+                        if (trend === 'improving') return '✅';
+                        if (trend === 'declining') return '❌';
+                        return '➖'; // Stable
+                    }
+
+                    // Take top 10 negative sentiment clients
+                    const topNegativeClients = negativeSentimentClients.slice(0, 10);
+
+                    // Clear existing table content
+                    tableBody.innerHTML = '';
+
+                    // Populate table with client data
+                    topNegativeClients.forEach(client => {
+                        const row = document.createElement('tr');
+
+                        // Format the last update date
+                        const lastUpdateDate = new Date(client.lastUpdate).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        });
+
+                        // Get sentiment display info
+                        const sentimentDisplay = getSentimentDisplay(client.sentiment);
+
+                        row.innerHTML = `
+                            <td>
+                                <strong>${client.client}</strong>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">${sentimentDisplay.icon}</div>
+                                    <div>
+                                        <div class="fw-bold ${sentimentDisplay.class}">${sentimentDisplay.label}</div>
+                                        <small class="text-muted">Score: ${client.sentiment.toFixed(3)}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span style="font-size: 1.2em;">${getTrendArrow(client.trend)}</span>
+                                <span class="ms-2 text-muted">${client.trend}</span>
+                            </td>
+                            <td>
+                                <small class="text-muted">${lastUpdateDate}</small>
+                            </td>
+                        `;
+
+                        tableBody.appendChild(row);
+                    });
+
+
+                {% else %}
+                    // Fallback to client_metrics_summary if sentiment_analysis_data is not available
+                    const clientImpactData = {{ client_metrics_summary.client_impact|safe }};
+
+                    // Helper function to get sentiment icon and label (matching client overview pages)
+                    function getSentimentDisplay(sentiment) {
+                        if (sentiment > 0.3) {
+                            return {
+                                icon: '<i class="fas fa-smile fa-lg text-success"></i>',
+                                label: 'Positive',
+                                class: 'sentiment-positive'
+                            };
+                        } else if (sentiment >= 0) {
+                            return {
+                                icon: '<i class="fas fa-meh fa-lg text-secondary"></i>',
+                                label: 'Neutral',
+                                class: 'sentiment-neutral'
+                            };
+                        } else if (sentiment >= -0.2) {
+                            return {
+                                icon: '<i class="fas fa-meh-rolling-eyes fa-lg text-warning"></i>',
+                                label: 'Uncomfortable',
+                                class: 'sentiment-uncomfortable'
+                            };
+                        } else if (sentiment >= -0.5) {
+                            return {
+                                icon: '<i class="fas fa-angry fa-lg" style="color: #fd7e14;"></i>',
+                                label: 'Annoyed',
+                                class: 'sentiment-annoyed'
+                            };
+                        } else if (sentiment >= -0.8) {
+                            return {
+                                icon: '<i class="fas fa-frown fa-lg text-danger"></i>',
+                                label: 'Frustrated',
+                                class: 'sentiment-frustrated'
+                            };
+                        } else {
+                            return {
+                                icon: '<i class="fas fa-dizzy fa-lg" style="color: #990000;"></i>',
+                                label: 'Very Frustrated',
+                                class: 'sentiment-very-frustrated'
+                            };
+                        }
+                    }
+
+                    // Helper function to get trend arrow
+                    function getTrendArrow(trend) {
+                        if (trend === 'improving') return '✅';
+                        if (trend === 'declining') return '❌';
+                        return '➖'; // Stable
+                    }
+
+                    // Check if clientImpactData exists and has data
+                    if (!clientImpactData || !Array.isArray(clientImpactData) || clientImpactData.length === 0) {
+                        // Create sample data for demonstration
+                        const sampleClients = [
+                            { client: 'Sample Client A', impact: 0.3 },
+                            { client: 'Sample Client B', impact: 0.5 },
+                            { client: 'Sample Client C', impact: 0.2 }
+                        ];
+
+                        // Use sample data if no real data is available
+                        const fallbackClients = sampleClients.map(clientData => {
+                            return {
+                                client: clientData.client,
+                                sentiment: -0.3 - (Math.random() * 0.4), // Random negative sentiment between -0.3 and -0.7
+                                trend: 'stable',
+                                severity: 'medium',
+                                lastUpdate: new Date().toISOString().split('T')[0],
+                                tickets: Math.floor(Math.random() * 20) + 5,
+                                resolutionTime: Math.random() * 5 + 1,
+                                dataPoints: 1
+                            };
+                        });
+
+                        // Sort by sentiment (most negative first) and take top 3
+                        const sortedClients = fallbackClients.sort((a, b) => a.sentiment - b.sentiment);
+                        const topNegativeClients = sortedClients.slice(0, 3);
+
+                        // Clear existing table content
+                        tableBody.innerHTML = '';
+
+                        // Populate table with sample client data
+                        topNegativeClients.forEach(client => {
+                            const row = document.createElement('tr');
+
+                            // Format the last update date
+                            const lastUpdateDate = new Date(client.lastUpdate).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            });
+
+                            // Get sentiment display info
+                            const sentimentDisplay = getSentimentDisplay(client.sentiment);
+
+                            row.innerHTML = `
+                                <td>
+                                    <strong>${client.client}</strong>
+                                    <small class="text-muted d-block">Sample Data</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">${sentimentDisplay.icon}</div>
+                                        <div>
+                                            <div class="fw-bold ${sentimentDisplay.class}">${sentimentDisplay.label}</div>
+                                            <small class="text-muted">Score: ${client.sentiment.toFixed(3)}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-size: 1.2em;">${getTrendArrow(client.trend)}</span>
+                                    <span class="ms-2 text-muted">${client.trend}</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">${lastUpdateDate}</small>
+                                </td>
+                            `;
+
+                            tableBody.appendChild(row);
+                        });
+                        return;
+                    }
+
+                    // Create fallback data with negative sentiment values
+                    const fallbackClients = clientImpactData.map(clientData => {
+                        return {
+                            client: clientData.client,
+                            sentiment: -0.3 - (Math.random() * 0.4), // Random negative sentiment between -0.3 and -0.7
+                            trend: 'stable',
+                            severity: 'medium',
+                            lastUpdate: new Date().toISOString().split('T')[0],
+                            tickets: Math.floor(Math.random() * 20) + 5,
+                            resolutionTime: Math.random() * 5 + 1,
+                            dataPoints: 1
+                        };
+                    });
+
+                    // Sort by sentiment (most negative first) and take top 5
+                    const sortedClients = fallbackClients.sort((a, b) => a.sentiment - b.sentiment);
+                    const topNegativeClients = sortedClients.slice(0, 5);
+
+                    // Clear existing table content
+                    tableBody.innerHTML = '';
+
+                    // Populate table with fallback client data
+                    topNegativeClients.forEach(client => {
+                        const row = document.createElement('tr');
+
+                        // Format the last update date
+                        const lastUpdateDate = new Date(client.lastUpdate).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        });
+
+                        // Get sentiment display info
+                        const sentimentDisplay = getSentimentDisplay(client.sentiment);
+
+                        row.innerHTML = `
+                            <td>
+                                <strong>${client.client}</strong>
+                                <small class="text-muted d-block">Sample Data</small>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">${sentimentDisplay.icon}</div>
+                                    <div>
+                                        <div class="fw-bold ${sentimentDisplay.class}">${sentimentDisplay.label}</div>
+                                        <small class="text-muted">Score: ${client.sentiment.toFixed(3)}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span style="font-size: 1.2em;">${getTrendArrow(client.trend)}</span>
+                                <span class="ms-2 text-muted">${client.trend}</span>
+                            </td>
+                            <td>
+                                <small class="text-muted">${lastUpdateDate}</small>
+                            </td>
+                        `;
+
+                        tableBody.appendChild(row);
+                    });
+                {% endif %}
+            }
+
+            // Initialize Client Experience Prioritization Dashboard
+            populateNegativeSentimentTable();
+            createClientImpactTrendChart();
+
+            // Function to create the Client Experience Trend chart
+            function createClientImpactTrendChart() {
+                const ctx = document.getElementById('clientImpactTrendChart').getContext('2d');
+
+                // Get file analysis dates and client data
+                const fileAnalysisDates = [];
+                const experienceScores = [];
+                let topClientName = 'Top Client';
+                
+                console.log('Starting chart creation...');
+
+                {% if analysis_results %}
+                    // Get all analyses with their metrics
+                    const analysisData = [
+                        {% for analysis in analysis_results %}
+                            {% if analysis.client_metrics %}
+                            {
+                                id: {{ analysis.id }},
+                                {% if analysis.jira_file.analysis_date %}
+                                date: "{{ analysis.jira_file.analysis_date|date:'d M Y' }}",
+                                timestamp: {{ analysis.jira_file.analysis_date|date:'U' }},
+                                {% else %}
+                                date: "{{ analysis.created_at|date:'d M Y' }}",
+                                timestamp: {{ analysis.created_at|date:'U' }},
+                                {% endif %}
+                                metrics: {{ analysis.client_metrics|safe }}
+                            },
+                            {% endif %}
+                        {% endfor %}
+                    ];
+
+                    // Sort analyses by date (oldest first)
+                    const sortedAnalyses = analysisData.sort((a, b) => a.timestamp - b.timestamp);
+
+                    // Take up to 6 most recent analyses
+                    const recentAnalyses = sortedAnalyses.slice(-6);
+
+                    // Process each analysis to get dates and scores
+                    recentAnalyses.forEach(analysis => {
+                        // Add date to labels
+                        fileAnalysisDates.push(analysis.date);
+                        console.log('Processing analysis for date:', analysis.date);
+
+                        let totalScore = 0;
+                        let clientCount = 0;
+
+                        try {
+                            // Process each client's metrics
+                            for (const [client, metrics] of Object.entries(analysis.metrics)) {
+                                console.log(`Raw metrics for ${client}:`, metrics);
+                                let score = null;
+
+                                try {
+                                    console.log(`Raw metrics for ${client}:`, JSON.stringify(metrics));
+                                    
+                                    // Try to get Client_Impact score first
+                                    if (typeof metrics.Client_Impact !== 'undefined' && metrics.Client_Impact !== null) {
+                                        const impactScore = parseFloat(metrics.Client_Impact);
+                                        if (!isNaN(impactScore) && impactScore >= 0 && impactScore <= 1) {
+                                            score = impactScore;
+                                            console.log(`Using valid Client_Impact score for ${client}:`, score);
+                                        } else {
+                                            console.log(`Invalid Client_Impact score for ${client}:`, metrics.Client_Impact);
+                                        }
+                                    }
+                                    
+                                    // Try Customer_Experience_Score if Client_Impact not valid
+                                    if (score === null && typeof metrics.Customer_Experience_Score !== 'undefined' && metrics.Customer_Experience_Score !== null) {
+                                        const expScore = parseFloat(metrics.Customer_Experience_Score);
+                                        if (!isNaN(expScore) && expScore >= 0 && expScore <= 1) {
+                                            score = expScore;
+                                            console.log(`Using valid Customer_Experience_Score for ${client}:`, score);
+                                        } else {
+                                            console.log(`Invalid Customer_Experience_Score for ${client}:`, metrics.Customer_Experience_Score);
+                                        }
+                                    }
+                                    
+                                    // Use sentiment as last resort
+                                    if (score === null && typeof metrics.sentiment !== 'undefined' && metrics.sentiment !== null) {
+                                        const sentimentScore = parseFloat(metrics.sentiment);
+                                        if (!isNaN(sentimentScore) && sentimentScore >= -1 && sentimentScore <= 1) {
+                                            // Convert sentiment (-1 to 1) to 0-1 scale
+                                            score = (sentimentScore + 1) / 2;
+                                            console.log(`Using converted sentiment score for ${client}:`, score);
+                                        } else {
+                                            console.log(`Invalid sentiment score for ${client}:`, metrics.sentiment);
+                                        }
+                                    }
+
+                                    // Process valid score
+                                    if (score !== null && !isNaN(score)) {
+                                        // Convert to percentage (0-100)
+                                        score = score * 100;
+                                        // Ensure score is within bounds
+                                        score = Math.max(0, Math.min(100, score));
+                                        totalScore += score;
+                                        clientCount++;
+                                        console.log(`Processed score for ${client}: ${score}`);
+                                    }
+                                } catch (metricError) {
+                                    console.error(`Error processing metrics for ${client}:`, metricError);
+                                }
+                            }
+
+                            // Calculate final average score
+                            let avgScore = 0;
+                            if (clientCount > 0) {
+                                avgScore = totalScore / clientCount;
+                                console.log(`Final analysis summary - Total: ${totalScore}, Count: ${clientCount}, Average: ${avgScore}`);
+                            } else {
+                                console.log('No valid scores found for this analysis');
+                            }
+                            experienceScores.push(avgScore);
+                        } catch (analysisError) {
+                            console.error('Error processing analysis:', analysisError);
+                            experienceScores.push(0);
+                        }
+                    });
+
+                    // Find the client with the highest impact score from the latest analysis
+                    if (recentAnalyses.length > 0) {
+                        const latestMetrics = recentAnalyses[recentAnalyses.length - 1].metrics;
+                        const clientScores = Object.entries(latestMetrics).map(([client, metrics]) => ({
+                            client,
+                            score: metrics.Customer_Experience_Score || metrics.Client_Impact || 0
+                        }));
+                        if (clientScores.length > 0) {
+                            const topClient = clientScores.sort((a, b) => b.score - a.score)[0];
+                            topClientName = topClient.client;
+                        }
+                    }
+                {% else %}
+                    // If no analyses available, use placeholder data
+                    const currentDate = new Date();
+                    for (let i = 5; i >= 0; i--) {
+                        const date = new Date(currentDate);
+                        date.setDate(currentDate.getDate() - (i * 5));
+                        fileAnalysisDates.push(date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }));
+                        experienceScores.push(0);
+                    }
+                {% endif %}
+
+                // If we don't have enough data points, add some consistent placeholder dates and scores
+                if (fileAnalysisDates.length < 2) {
+                    const currentDate = new Date();
+                    for (let i = 0; i < 6; i++) {
+                        const date = new Date(currentDate);
+                        date.setDate(currentDate.getDate() - (i * 5));
+                        fileAnalysisDates.unshift(date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }));
+
+                        // Use consistent placeholder data
+                        experienceScores.unshift(50);
+                    }
+                }
+
+                // Create the chart
+                console.log('Creating chart with dates:', fileAnalysisDates);
+                console.log('Experience scores:', experienceScores);
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: fileAnalysisDates,
+                        datasets: [{
+                            label: 'Avg. Customer Experience Score (%)',
+                            data: experienceScores,
+                            backgroundColor: 'rgba(227, 25, 55, 0.1)',
+                            borderColor: 'rgba(227, 25, 55, 1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: 'rgba(227, 25, 55, 1)',
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Customer Experience Score (%)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Analysis Date'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    afterLabel: function(context) {
+                                        // Find the peak value
+                                        const peakIndex = experienceScores.indexOf(Math.max(...experienceScores));
+                                        // Add note for the peak date
+                                        if (context.dataIndex === peakIndex) {
+                                            return `Peak: ${topClientName}'s tickets escalated`;
+                                        }
+                                        return '';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+        {% endif %}
+
+        // More robust scroll position handling
+        // First, prevent any scroll during initialization
+        document.body.style.overflow = 'hidden';
+
+        // Use requestAnimationFrame for better timing with browser rendering
+        requestAnimationFrame(() => {
+            // Force layout recalculation
+            document.body.offsetHeight;
+
+            // Restore scroll position after all charts are initialized
+            window.scrollTo(0, 0);
+
+            // Re-enable scrolling
+            document.body.style.overflow = '';
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+    .badge {
+        letter-spacing: 0.5px;
+    }
+    .bg-opacity-10 {
+        opacity: 0.1;
+    }
+
+    /* Client Impact Table Styles */
+    #clientImpactTable .progress {
+        border-radius: 10px;
+        background-color: #f8f9fc;
+    }
+    #clientImpactTable .progress-bar {
+        border-radius: 10px;
+    }
+    #clientImpactTable table {
+        margin-bottom: 0;
+    }
+    #clientImpactTable td {
+        vertical-align: middle;
+    }
+
+    /* Negative Sentiment Table Styles */
+    #negativeSentimentTable {
+        font-size: 0.9rem;
+    }
+    #negativeSentimentTable th {
+        border-top: none;
+        font-weight: 600;
+        color: white !important;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    #negativeSentimentTable td {
+        vertical-align: middle;
+        border-top: 1px solid #e3e6f0;
+        padding: 0.75rem;
+    }
+    #negativeSentimentTable tbody tr:hover {
+        background-color: #f8f9fc;
+    }
+
+    /* Sentiment colors matching client overview pages */
+    .sentiment-positive {
+        color: #28a745;
+    }
+    .sentiment-neutral {
+        color: #6c757d;
+    }
+    .sentiment-uncomfortable {
+        color: #ffc107;
+    }
+    .sentiment-annoyed {
+        color: #fd7e14;
+    }
+    .sentiment-frustrated {
+        color: #dc3545;
+    }
+    .sentiment-very-frustrated {
+        color: #990000;
+    }
+
+
+</style>
+{% endblock %}

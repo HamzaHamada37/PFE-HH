@@ -1,0 +1,422 @@
+{% extends 'base.html' %}
+{% load analyzer_filters %}
+{% load static %}
+
+{% block title %}Dashboard | Vermeg Analysis{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page header -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 5px; height: 25px; background-color: var(--primary);"></div>
+                <h1 class="fw-bold mb-0">Dashboard</h1>
+            </div>
+            <p class="text-secondary mt-2 mb-0">Manage and analyze your data files</p>
+        </div>
+        <a href="{% url 'upload_file' %}" class="btn btn-danger">
+            <i class="fas fa-upload me-2"></i>Upload New File
+        </a>
+    </div>
+
+    {% if jira_files %}
+    <!-- Stats overview -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-file-alt text-danger fa-2x"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ jira_files|length }}</h3>
+                        <p class="text-secondary mb-0">Total Files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-check-circle text-danger fa-2x"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ jira_files|count_processed }}</h3>
+                        <p class="text-secondary mb-0">Processed Files</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-users text-danger fa-2x"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ client_count|default:"0" }}</h3>
+                        <p class="text-secondary mb-0">Total Clients</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-ticket-alt text-danger fa-2x"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0">{{ total_tickets|default:"0" }}</h3>
+                        <p class="text-secondary mb-0">Total Tickets</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Metrics Summary -->
+    {% if client_metrics_summary %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">Client Metrics Summary</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="clientSentimentSummary" height="250"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="resolutionTimeSummary" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="row mb-4">
+            <div class="col">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elif message.tags == 'info' %}
+                            <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if jira_files %}
+        <!-- Files section -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 5px; height: 25px; background-color: var(--primary);"></div>
+                <h2 class="fs-4 fw-bold mb-0">Your Files</h2>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-sort me-1"></i> Sort by
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                    <li><a class="dropdown-item" href="#" id="sort-newest"><i class="fas fa-calendar-alt me-2"></i>Newest first</a></li>
+                    <li><a class="dropdown-item" href="#" id="sort-oldest"><i class="fas fa-calendar-alt me-2"></i>Oldest first</a></li>
+                    <li><a class="dropdown-item" href="#" id="sort-name"><i class="fas fa-font me-2"></i>Name</a></li>
+                    <li><a class="dropdown-item" href="#" id="sort-status"><i class="fas fa-tasks me-2"></i>Status</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row g-4" id="files-container">
+            {% for file in jira_files %}
+            <div class="col-md-6 col-lg-4 mb-4 file-card"
+                 data-date="{{ file.uploaded_at|date:'U' }}"
+                 data-name="{{ file.file.name }}"
+                 data-status="{{ file.processed|yesno:'processed,pending' }}">
+                <div class="card h-100 border-0 shadow-sm rounded">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 text-truncate">{{ file.file.name|truncatechars:40 }}</h5>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light rounded-circle" type="button" id="dropdownMenuButton{{ file.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ file.id }}">
+                                {% if file.processed and file.analysis_results.exists %}
+                                <li><a class="dropdown-item" href="{% url 'view_analysis' file.analysis_results.last.id %}"><i class="fas fa-chart-bar me-2"></i>View Analysis</a></li>
+                                {% endif %}
+                                {% if not file.processed %}
+                                <li><a class="dropdown-item" href="{% url 'process_file' file.id %}"><i class="fas fa-cogs me-2"></i>Process File</a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item text-danger" href="{% url 'delete_file' file.id %}" onclick="return confirm('Are you sure you want to delete this file? This action cannot be undone.');"><i class="fas fa-trash-alt me-2"></i>Delete</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="far fa-calendar-alt text-secondary me-2"></i>
+                                <span>{{ file.uploaded_at|date:"F j, Y" }}</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="far fa-file text-secondary me-2"></i>
+                                <span>{{ file.get_file_type_display }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if file.processed %}
+                                <span class="badge bg-danger py-2 px-3">
+                                    <i class="fas fa-check-circle me-1"></i> Processed
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary py-2 px-3">
+                                    <i class="fas fa-hourglass-half me-1"></i> Pending
+                                </span>
+                            {% endif %}
+
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    {% if file.processed and file.analysis_results.exists %}
+                                        <a href="{% url 'view_analysis' file.analysis_results.last.id %}" class="btn btn-danger">
+                                            <i class="fas fa-chart-bar me-1"></i> View Insights
+                                        </a>
+                                    {% elif not file.processed %}
+                                        <a href="{% url 'process_file' file.id %}" class="btn btn-outline-danger">
+                                            <i class="fas fa-cogs me-1"></i> Process
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'delete_file' file.id %}" class="btn btn-outline-secondary"
+                                   onclick="return confirm('Are you sure you want to delete this file? This action cannot be undone.');">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty state -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <img src="{% static 'images/data-flow-image.png' %}" alt="No Files" class="img-fluid rounded-3 shadow" style="max-height: 200px;">
+                </div>
+                <h3 class="fw-bold mb-3">No Files Yet</h3>
+                <p class="text-secondary mb-4">Upload your first data file to get started with analysis and insights.</p>
+                <a href="{% url 'upload_file' %}" class="btn btn-danger btn-lg">
+                    <i class="fas fa-upload me-2"></i>Upload Your First File
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sort functionality
+        const filesContainer = document.getElementById('files-container');
+        const sortNewest = document.getElementById('sort-newest');
+        const sortOldest = document.getElementById('sort-oldest');
+        const sortName = document.getElementById('sort-name');
+        const sortStatus = document.getElementById('sort-status');
+
+        if (!filesContainer) return;
+
+        function sortFiles(selector, ascending = true) {
+            const fileCards = Array.from(document.querySelectorAll('.file-card'));
+            fileCards.sort((a, b) => {
+                let valueA = a.getAttribute(selector);
+                let valueB = b.getAttribute(selector);
+
+                if (valueA < valueB) return ascending ? -1 : 1;
+                if (valueA > valueB) return ascending ? 1 : -1;
+                return 0;
+            });
+
+            // Clear and re-append in sorted order
+            filesContainer.innerHTML = '';
+            fileCards.forEach(card => filesContainer.appendChild(card));
+        }
+
+        if (sortNewest) {
+            sortNewest.addEventListener('click', function(e) {
+                e.preventDefault();
+                sortFiles('data-date', false);
+            });
+        }
+
+        if (sortOldest) {
+            sortOldest.addEventListener('click', function(e) {
+                e.preventDefault();
+                sortFiles('data-date', true);
+            });
+        }
+
+        if (sortName) {
+            sortName.addEventListener('click', function(e) {
+                e.preventDefault();
+                sortFiles('data-name', true);
+            });
+        }
+
+        if (sortStatus) {
+            sortStatus.addEventListener('click', function(e) {
+                e.preventDefault();
+                sortFiles('data-status', true);
+            });
+        }
+
+        // Client Metrics Summary Charts
+        {% if client_metrics_summary %}
+            const chartColors = [
+                '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+                '#5a5c69', '#858796', '#6610f2', '#6f42c1', '#fd7e14'
+            ];
+
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            };
+
+            // Client Sentiment Summary Chart
+            const clientSentimentElement = document.getElementById('clientSentimentSummary');
+            if (clientSentimentElement) {
+                const sentimentData = {{ client_metrics_summary.sentiment|safe }};
+                new Chart(
+                    clientSentimentElement,
+                    {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Positive', 'Neutral', 'Negative'],
+                            datasets: [{
+                                data: [
+                                    sentimentData.positive,
+                                    sentimentData.neutral,
+                                    sentimentData.negative
+                                ],
+                                backgroundColor: ['#1cc88a', '#4e73df', '#e74a3b'],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            ...chartOptions,
+                            plugins: {
+                                ...chartOptions.plugins,
+                                title: {
+                                    display: true,
+                                    text: 'Client Sentiment Distribution',
+                                    font: {
+                                        size: 16
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.raw || 0;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = Math.round((value / total) * 100);
+                                            return `${label}: ${value} (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                );
+            }
+
+            // Resolution Time Summary Chart
+            const resolutionTimeElement = document.getElementById('resolutionTimeSummary');
+            if (resolutionTimeElement) {
+                const resolutionTimeData = {{ client_metrics_summary.resolution_time|safe }};
+
+                // Sort by resolution time for better visualization
+                resolutionTimeData.sort((a, b) => b.days - a.days);
+
+                // Limit to top 5 clients for better readability
+                const topClients = resolutionTimeData.slice(0, 5);
+
+                new Chart(
+                    resolutionTimeElement,
+                    {
+                        type: 'bar',
+                        data: {
+                            labels: topClients.map(item => item.client),
+                            datasets: [{
+                                label: 'Avg Resolution Time (Days)',
+                                data: topClients.map(item => item.days),
+                                backgroundColor: '#4e73df',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            ...chartOptions,
+                            plugins: {
+                                ...chartOptions.plugins,
+                                title: {
+                                    display: true,
+                                    text: 'Top 5 Resolution Times by Client',
+                                    font: {
+                                        size: 16
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Days'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                );
+            }
+        {% endif %}
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+    .badge {
+        letter-spacing: 0.5px;
+    }
+    .bg-opacity-10 {
+        opacity: 0.1;
+    }
+</style>
+{% endblock %}

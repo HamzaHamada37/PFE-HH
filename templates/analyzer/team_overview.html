@@ -1,0 +1,1124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Team Overview | Vermeg Insights{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-zone {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        padding: 2rem;
+        text-align: center;
+        background-color: #f8f9fa;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .upload-zone:hover {
+        border-color: var(--primary);
+        background-color: #e3f2fd;
+    }
+
+    .upload-zone.dragover {
+        border-color: var(--primary);
+        background-color: #e3f2fd;
+        transform: scale(1.02);
+    }
+
+    .kpi-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        border-radius: 10px;
+        overflow: hidden;
+        border-left: 4px solid var(--primary);
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .kpi-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .kpi-label {
+        font-size: 0.9rem;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 350px;
+        width: 100%;
+    }
+
+    .feedback-item {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid var(--primary);
+    }
+
+    .theme-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .section-divider {
+        width: 50px;
+        height: 4px;
+        background-color: var(--primary);
+        margin: 15px 0;
+    }
+
+    .file-info {
+        background-color: #e8f5e8;
+        border: 1px solid #c3e6c3;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .no-data-placeholder {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+    }
+
+    .satisfaction-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+
+    .satisfaction-high { background-color: #28a745; }
+    .satisfaction-medium { background-color: #ffc107; }
+    .satisfaction-low { background-color: #dc3545; }
+
+    /* File input styling */
+    input[type="file"] {
+        margin: 10px 0;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        width: 100%;
+    }
+
+    input[type="file"]:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(227, 25, 55, 0.25);
+    }
+
+    /* Enhanced feedback section styling */
+    .feedback-item {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid var(--primary);
+        transition: all 0.3s ease;
+    }
+
+    .feedback-item:hover {
+        background-color: #e9ecef;
+        transform: translateX(2px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .feedback-text {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #495057;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .feedback-item .badge {
+        font-size: 0.75rem;
+    }
+
+    #feedbackToggle {
+        color: inherit !important;
+        text-decoration: none !important;
+    }
+
+    #feedbackToggle:hover {
+        color: var(--primary) !important;
+    }
+
+    #feedbackChevron {
+        transition: transform 0.3s ease;
+        font-size: 0.8rem;
+    }
+
+    .collapse.show #feedbackChevron {
+        transform: rotate(180deg);
+    }
+
+    /* Search and filter styling */
+    #feedbackSearch, #roleFilter, #lengthFilter {
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+    }
+
+    #feedbackSearch:focus, #roleFilter:focus, #lengthFilter:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(227, 25, 55, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Page header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold mb-0">Team Overview</h1>
+            <div class="section-divider"></div>
+            <p class="text-secondary">Analyze team survey responses and performance metrics</p>
+        </div>
+        <div>
+            {% if has_data %}
+            <button class="btn btn-outline-secondary me-2" onclick="exportData('csv')">
+                <i class="fas fa-download me-2"></i>Export CSV
+            </button>
+            <button class="btn btn-outline-secondary me-2" onclick="exportData('excel')">
+                <i class="fas fa-file-excel me-2"></i>Export Excel
+            </button>
+            <button class="btn btn-outline-danger" onclick="exportData('pdf')">
+                <i class="fas fa-file-pdf me-2"></i>Export PDF Report
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            {% if message.tags == 'success' %}
+                <i class="fas fa-check-circle me-2"></i>
+            {% elif message.tags == 'error' %}
+                <i class="fas fa-exclamation-triangle me-2"></i>
+            {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-circle me-2"></i>
+            {% else %}
+                <i class="fas fa-info-circle me-2"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- File Upload Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-upload me-2"></i>Upload Survey Data
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if has_data %}
+                    <div class="file-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Current Data:</strong> {{ survey_data.file_name }}
+                                <br>
+                                <small class="text-muted">
+                                    Uploaded: {{ survey_data.upload_date|date:"M d, Y H:i" }}
+                                    {% if survey_data.survey_date %}| Survey Date: {{ survey_data.survey_date|date:"M d, Y" }}{% endif %}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success">{{ survey_data.total_responses }} Total Responses</span>
+                                <span class="badge bg-info">{{ survey_data.valid_responses }} Valid for KPIs</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" id="surveyUploadForm">
+                        {% csrf_token %}
+
+                        <!-- Display form errors if any -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Upload Error:</strong>
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <div>{{ field }}: {{ error }}</div>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="upload-zone" id="uploadZone">
+                            <div id="uploadZoneContent">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h5>Upload Survey Excel File</h5>
+                                <p class="text-muted mb-3">
+                                    Drag and drop your Excel file here, or click to browse<br>
+                                    <small>Supports .xlsx and .xls files (max 10MB)</small>
+                                </p>
+                                <button type="button" class="btn btn-outline-primary mt-2" onclick="document.getElementById('{{ form.file.id_for_label }}').click()">
+                                    <i class="fas fa-folder-open me-2"></i>Choose File
+                                </button>
+                            </div>
+                            {{ form.file }}
+                        </div>
+
+                        <!-- Loading indicator -->
+                        <div id="loadingIndicator" class="text-center mt-3" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Processing...</span>
+                            </div>
+                            <p class="mt-2">Processing survey data, please wait...</p>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.survey_date.id_for_label }}" class="form-label">Survey Date (Optional)</label>
+                                {{ form.survey_date }}
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+                                    <i class="fas fa-upload me-2"></i>Upload & Process
+                                </button>
+                                <button type="button" class="btn btn-secondary ms-2" id="clearBtn" onclick="clearFileSelection()" style="display: none;">
+                                    <i class="fas fa-times me-2"></i>Clear
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if has_data %}
+    <!-- KPI Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card kpi-card h-100">
+                <div class="card-body text-center">
+                    <div class="kpi-value">{{ kpi_data.overall_satisfaction|floatformat:1 }}/5</div>
+                    <div class="kpi-label">Overall Satisfaction</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card kpi-card h-100">
+                <div class="card-body text-center">
+                    <div class="kpi-value">{{ kpi_data.psychological_safety|floatformat:1 }}/5</div>
+                    <div class="kpi-label">Psychological Safety</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card kpi-card h-100">
+                <div class="card-body text-center">
+                    <div class="kpi-value">{{ kpi_data.work_environment|floatformat:1 }}/5</div>
+                    <div class="kpi-label">Work Environment</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card kpi-card h-100">
+                <div class="card-body text-center">
+                    <div class="kpi-value">{{ kpi_data.team_collaboration|floatformat:1 }}/5</div>
+                    <div class="kpi-label">Team Collaboration</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">KPI Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="kpiChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Role Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="roleChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Question Analysis -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Detailed Question Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="questionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Satisfaction Distribution -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Satisfaction Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="satisfactionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Satisfaction Levels</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column justify-content-center h-100">
+                        <div class="mb-3">
+                            <span class="satisfaction-indicator satisfaction-high"></span>
+                            <strong>High (4.0-5.0):</strong> {{ kpi_data.satisfaction_distribution.high|default:0 }} responses
+                        </div>
+                        <div class="mb-3">
+                            <span class="satisfaction-indicator satisfaction-medium"></span>
+                            <strong>Medium (3.0-3.9):</strong> {{ kpi_data.satisfaction_distribution.medium|default:0 }} responses
+                        </div>
+                        <div class="mb-3">
+                            <span class="satisfaction-indicator satisfaction-low"></span>
+                            <strong>Low (1.0-2.9):</strong> {{ kpi_data.satisfaction_distribution.low|default:0 }} responses
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Qualitative Feedback Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <button class="btn btn-link text-decoration-none p-0 fw-bold text-dark" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#feedbackAnalysis"
+                                aria-expanded="false" aria-controls="feedbackAnalysis" id="feedbackToggle">
+                            <i class="fas fa-comments me-2"></i>Open Feedback Analysis
+                            <i class="fas fa-chevron-down ms-2" id="feedbackChevron"></i>
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse" id="feedbackAnalysis">
+                    <div class="card-body">
+                        {% if feedback_data.themes %}
+                        <!-- Feedback Statistics and Themes -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3">
+                                    <i class="fas fa-chart-pie me-2"></i>Common Themes
+                                </h6>
+                                {% for theme in feedback_data.themes %}
+                                <div class="theme-badge">
+                                    {{ theme.theme }} ({{ theme.count }})
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3">
+                                    <i class="fas fa-chart-bar me-2"></i>Feedback Statistics
+                                </h6>
+                                <p><strong>Total Feedback Responses:</strong> {{ feedback_data.total_feedback }}</p>
+                                <p><strong>Response Rate:</strong>
+                                    {% widthratio feedback_data.total_feedback survey_data.total_responses 100 %}%
+                                </p>
+                                <p><strong>Average Response Length:</strong> <span id="avgResponseLength">Calculating...</span></p>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Individual Feedback Responses -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="fw-bold mb-3">
+                                    <i class="fas fa-list me-2"></i>Individual Feedback Responses
+                                </h6>
+
+                                <!-- Filter and Search -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="feedbackSearch"
+                                               placeholder="🔍 Search feedback responses..." onkeyup="filterFeedback()">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select" id="roleFilter" onchange="filterFeedback()">
+                                            <option value="">All Roles</option>
+                                            {% for role in feedback_data.roles %}
+                                            <option value="{{ role }}">{{ role }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select" id="lengthFilter" onchange="filterFeedback()">
+                                            <option value="">All Lengths</option>
+                                            <option value="short">Short (< 50 chars)</option>
+                                            <option value="medium">Medium (50-200 chars)</option>
+                                            <option value="long">Long (> 200 chars)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Feedback Responses Container -->
+                                <div id="feedbackContainer">
+                                    {% for response in feedback_data.responses %}
+                                    <div class="feedback-item mb-3" data-role="{{ response.role|default:'Unknown' }}"
+                                         data-length="{{ response.open_feedback|length }}">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-primary me-2">{{ response.role|default:'Unknown Role' }}</span>
+                                                <small class="text-muted">
+                                                    Response #{{ forloop.counter }} •
+                                                    {{ response.open_feedback|length }} characters •
+                                                    {{ response.created_at|date:"M d, Y" }}
+                                                </small>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyFeedback(this)"
+                                                    title="Copy feedback">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </div>
+                                        <div class="feedback-text">
+                                            {{ response.open_feedback|linebreaks }}
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="fas fa-comment-slash fa-2x mb-2"></i>
+                                        <p>No individual feedback responses available</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Pagination for feedback if many responses -->
+                                {% if feedback_data.responses|length > 10 %}
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div>
+                                        <small class="text-muted">
+                                            Showing <span id="showingCount">{{ feedback_data.responses|length }}</span>
+                                            of {{ feedback_data.responses|length }} responses
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="showMoreFeedback()"
+                                                id="showMoreBtn" style="display: none;">
+                                            Show More
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-comment-slash fa-2x mb-2"></i>
+                            <p>No feedback analysis available</p>
+                            <small>Upload a survey file with open-ended responses to see feedback analysis</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Data Placeholder -->
+    <div class="no-data-placeholder">
+        <i class="fas fa-chart-line fa-4x mb-3"></i>
+        <h3>No Survey Data Available</h3>
+        <p class="mb-4">Upload a survey Excel file to start analyzing team performance metrics.</p>
+        <div class="alert alert-info">
+            <strong>Expected File Format:</strong>
+            <ul class="mb-0 text-start">
+                <li>Excel file (.xlsx or .xls)</li>
+                <li>Columns: Role, Q1_1_SpeakingUp through Q4_3_SharingUpdates, Open_Feedback</li>
+                <li>Survey responses on a 1-5 scale</li>
+                <li>N/A values will be filtered out for KPI calculations</li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Team Overview page loaded');
+
+    // File upload handling
+    const fileInput = document.getElementById('{{ form.file.id_for_label }}');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const uploadZone = document.getElementById('uploadZone');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const surveyForm = document.getElementById('surveyUploadForm');
+
+    // Debug: Log element availability
+    console.log('Elements found:', {
+        fileInput: !!fileInput,
+        uploadBtn: !!uploadBtn,
+        clearBtn: !!clearBtn,
+        uploadZone: !!uploadZone,
+        loadingIndicator: !!loadingIndicator,
+        surveyForm: !!surveyForm
+    });
+
+    if (!fileInput) {
+        console.error('File input not found!');
+        return;
+    }
+
+    // Store original upload zone content
+    const uploadZoneContent = document.getElementById('uploadZoneContent');
+    const originalUploadZoneContent = uploadZoneContent ? uploadZoneContent.innerHTML : uploadZone.innerHTML;
+
+    // Enable upload button when file is selected
+    fileInput.addEventListener('change', function() {
+        const hasFile = this.files.length > 0;
+        uploadBtn.disabled = !hasFile;
+        clearBtn.style.display = hasFile ? 'inline-block' : 'none';
+
+        if (hasFile) {
+            const file = this.files[0];
+            const fileSize = (file.size / 1024 / 1024).toFixed(2); // Size in MB
+
+            // Validate file type
+            const validExtensions = ['.xlsx', '.xls'];
+            const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+
+            if (!validExtensions.includes(fileExtension)) {
+                alert('Please select a valid Excel file (.xlsx or .xls)');
+                clearFileSelection();
+                return;
+            }
+
+            // Validate file size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
+                clearFileSelection();
+                return;
+            }
+
+            if (uploadZoneContent) {
+                uploadZoneContent.innerHTML = `
+                    <i class="fas fa-file-excel fa-3x text-success mb-3"></i>
+                    <h5>File Selected: ${file.name}</h5>
+                    <p class="text-muted">Size: ${fileSize} MB</p>
+                    <p class="text-success">✓ Ready to upload</p>
+                `;
+            } else {
+                uploadZone.innerHTML = `
+                    <i class="fas fa-file-excel fa-3x text-success mb-3"></i>
+                    <h5>File Selected: ${file.name}</h5>
+                    <p class="text-muted">Size: ${fileSize} MB</p>
+                    <p class="text-success">✓ Ready to upload</p>
+                    ${fileInput.outerHTML}
+                `;
+            }
+        }
+    });
+
+    // Clear file selection function
+    window.clearFileSelection = function() {
+        fileInput.value = '';
+        uploadBtn.disabled = true;
+        clearBtn.style.display = 'none';
+        if (uploadZoneContent) {
+            uploadZoneContent.innerHTML = originalUploadZoneContent;
+        } else {
+            uploadZone.innerHTML = originalUploadZoneContent;
+        }
+    };
+
+    // Form submission handling
+    surveyForm.addEventListener('submit', function(e) {
+        console.log('Form submission started');
+        console.log('Files selected:', fileInput.files.length);
+
+        if (!fileInput.files.length) {
+            e.preventDefault();
+            alert('Please select a file to upload');
+            console.log('Form submission prevented - no file selected');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        console.log('File details:', {
+            name: file.name,
+            size: file.size,
+            type: file.type
+        });
+
+        // Validate file type
+        const validExtensions = ['.xlsx', '.xls'];
+        const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+
+        if (!validExtensions.includes(fileExtension)) {
+            e.preventDefault();
+            alert('Please select a valid Excel file (.xlsx or .xls)');
+            console.log('Form submission prevented - invalid file type');
+            return;
+        }
+
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            e.preventDefault();
+            alert('File size must be less than 10MB');
+            console.log('Form submission prevented - file too large');
+            return;
+        }
+
+        console.log('Form validation passed, submitting...');
+
+        // Show loading indicator
+        loadingIndicator.style.display = 'block';
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+        // Add a timeout to reset the button if something goes wrong
+        setTimeout(function() {
+            if (uploadBtn.innerHTML.includes('Processing')) {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload & Process';
+                loadingIndicator.style.display = 'none';
+                console.log('Upload timeout - resetting button');
+            }
+        }, 30000); // 30 second timeout
+    });
+
+    // Drag and drop functionality
+    uploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            // Create a new FileList-like object
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            fileInput.files = dt.files;
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    });
+
+    {% if has_data %}
+    // Initialize charts with data
+    const kpiData = {{ kpi_data|safe }};
+
+    // KPI Breakdown Chart
+    const kpiCtx = document.getElementById('kpiChart').getContext('2d');
+    new Chart(kpiCtx, {
+        type: 'radar',
+        data: {
+            labels: ['Psychological Safety', 'Work Environment', 'Client Service', 'Team Collaboration'],
+            datasets: [{
+                label: 'Team KPIs',
+                data: [
+                    kpiData.psychological_safety,
+                    kpiData.work_environment,
+                    kpiData.client_service,
+                    kpiData.team_collaboration
+                ],
+                backgroundColor: 'rgba(227, 25, 55, 0.2)',
+                borderColor: 'rgba(227, 25, 55, 1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(227, 25, 55, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(227, 25, 55, 1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 5,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Role Distribution Chart
+    const roleCtx = document.getElementById('roleChart').getContext('2d');
+    const roleLabels = Object.keys(kpiData.role_distribution);
+    const roleValues = Object.values(kpiData.role_distribution);
+
+    new Chart(roleCtx, {
+        type: 'doughnut',
+        data: {
+            labels: roleLabels,
+            datasets: [{
+                data: roleValues,
+                backgroundColor: [
+                    '#e31937',
+                    '#ff6b6b',
+                    '#4ecdc4',
+                    '#45b7d1',
+                    '#96ceb4',
+                    '#feca57',
+                    '#ff9ff3',
+                    '#54a0ff'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Detailed Question Analysis Chart
+    const questionCtx = document.getElementById('questionChart').getContext('2d');
+    const questionLabels = Object.keys(kpiData.question_averages).map(q => {
+        // Convert question codes to readable labels
+        const labelMap = {
+            'Q1_1_SpeakingUp': 'Speaking Up Comfort',
+            'Q1_2_MistakesHeldAgainstMe': 'Mistakes Not Held Against',
+            'Q1_3_RespectWhenNotKnowing': 'Respect When Not Knowing',
+            'Q2_1_WorkloadManageable': 'Workload Manageable',
+            'Q2_2_ToolsAndResources': 'Tools & Resources',
+            'Q2_3_WorkLifeBalance': 'Work-Life Balance',
+            'Q3_1_UnderstandingClients': 'Understanding Clients',
+            'Q3_2_SupportHandlingClients': 'Support Handling Clients',
+            'Q3_3_ToolsForClientService': 'Tools for Client Service',
+            'Q4_1_HelpResponsiveness': 'Help Responsiveness',
+            'Q4_2_ConflictResolution': 'Conflict Resolution',
+            'Q4_3_SharingUpdates': 'Sharing Updates'
+        };
+        return labelMap[q] || q;
+    });
+    const questionValues = Object.values(kpiData.question_averages);
+
+    new Chart(questionCtx, {
+        type: 'bar',
+        data: {
+            labels: questionLabels,
+            datasets: [{
+                label: 'Average Score',
+                data: questionValues,
+                backgroundColor: 'rgba(227, 25, 55, 0.8)',
+                borderColor: 'rgba(227, 25, 55, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 5,
+                    ticks: {
+                        stepSize: 0.5
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Satisfaction Distribution Chart
+    const satisfactionCtx = document.getElementById('satisfactionChart').getContext('2d');
+    new Chart(satisfactionCtx, {
+        type: 'pie',
+        data: {
+            labels: ['High Satisfaction', 'Medium Satisfaction', 'Low Satisfaction'],
+            datasets: [{
+                data: [
+                    kpiData.satisfaction_distribution.high || 0,
+                    kpiData.satisfaction_distribution.medium || 0,
+                    kpiData.satisfaction_distribution.low || 0
+                ],
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Feedback section toggle functionality
+    const feedbackToggle = document.getElementById('feedbackToggle');
+    const feedbackChevron = document.getElementById('feedbackChevron');
+    const feedbackAnalysis = document.getElementById('feedbackAnalysis');
+
+    if (feedbackToggle && feedbackChevron && feedbackAnalysis) {
+        feedbackAnalysis.addEventListener('show.bs.collapse', function () {
+            feedbackChevron.classList.remove('fa-chevron-down');
+            feedbackChevron.classList.add('fa-chevron-up');
+        });
+
+        feedbackAnalysis.addEventListener('hide.bs.collapse', function () {
+            feedbackChevron.classList.remove('fa-chevron-up');
+            feedbackChevron.classList.add('fa-chevron-down');
+        });
+
+        // Calculate average response length
+        const feedbackItems = document.querySelectorAll('.feedback-text');
+        if (feedbackItems.length > 0) {
+            let totalLength = 0;
+            feedbackItems.forEach(item => {
+                totalLength += item.textContent.trim().length;
+            });
+            const avgLength = Math.round(totalLength / feedbackItems.length);
+            const avgLengthElement = document.getElementById('avgResponseLength');
+            if (avgLengthElement) {
+                avgLengthElement.textContent = avgLength + ' characters';
+            }
+        }
+    }
+});
+
+// Feedback filtering functionality
+function filterFeedback() {
+    const searchTerm = document.getElementById('feedbackSearch').value.toLowerCase();
+    const roleFilter = document.getElementById('roleFilter').value;
+    const lengthFilter = document.getElementById('lengthFilter').value;
+    const feedbackItems = document.querySelectorAll('.feedback-item');
+
+    let visibleCount = 0;
+
+    feedbackItems.forEach(item => {
+        const role = item.getAttribute('data-role');
+        const length = parseInt(item.getAttribute('data-length'));
+        const text = item.querySelector('.feedback-text').textContent.toLowerCase();
+
+        let showItem = true;
+
+        // Apply search filter
+        if (searchTerm && !text.includes(searchTerm) && !role.toLowerCase().includes(searchTerm)) {
+            showItem = false;
+        }
+
+        // Apply role filter
+        if (roleFilter && role !== roleFilter) {
+            showItem = false;
+        }
+
+        // Apply length filter
+        if (lengthFilter) {
+            if (lengthFilter === 'short' && length >= 50) showItem = false;
+            if (lengthFilter === 'medium' && (length < 50 || length > 200)) showItem = false;
+            if (lengthFilter === 'long' && length <= 200) showItem = false;
+        }
+
+        if (showItem) {
+            item.style.display = 'block';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    // Update showing count
+    const showingCountElement = document.getElementById('showingCount');
+    if (showingCountElement) {
+        showingCountElement.textContent = visibleCount;
+    }
+}
+
+// Copy feedback functionality
+function copyFeedback(button) {
+    const feedbackText = button.closest('.feedback-item').querySelector('.feedback-text').textContent;
+
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(feedbackText).then(() => {
+            // Show success feedback
+            const originalIcon = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check text-success"></i>';
+            button.title = 'Copied!';
+
+            setTimeout(() => {
+                button.innerHTML = originalIcon;
+                button.title = 'Copy feedback';
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            alert('Failed to copy feedback');
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = feedbackText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            const originalIcon = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check text-success"></i>';
+            button.title = 'Copied!';
+
+            setTimeout(() => {
+                button.innerHTML = originalIcon;
+                button.title = 'Copy feedback';
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            alert('Failed to copy feedback');
+        }
+        document.body.removeChild(textArea);
+    }
+}
+
+// Show more feedback functionality (for pagination)
+let feedbackDisplayLimit = 10;
+function showMoreFeedback() {
+    const feedbackItems = document.querySelectorAll('.feedback-item');
+    const showMoreBtn = document.getElementById('showMoreBtn');
+
+    feedbackDisplayLimit += 10;
+
+    feedbackItems.forEach((item, index) => {
+        if (index < feedbackDisplayLimit) {
+            item.style.display = 'block';
+        }
+    });
+
+    if (feedbackDisplayLimit >= feedbackItems.length) {
+        showMoreBtn.style.display = 'none';
+    }
+
+    // Update showing count
+    const visibleItems = Array.from(feedbackItems).filter(item => item.style.display !== 'none').length;
+    const showingCountElement = document.getElementById('showingCount');
+    if (showingCountElement) {
+        showingCountElement.textContent = visibleItems;
+    }
+}
+
+// Initialize feedback display limit
+document.addEventListener('DOMContentLoaded', function() {
+    const feedbackItems = document.querySelectorAll('.feedback-item');
+    const showMoreBtn = document.getElementById('showMoreBtn');
+
+    if (feedbackItems.length > 10) {
+        feedbackItems.forEach((item, index) => {
+            if (index >= 10) {
+                item.style.display = 'none';
+            }
+        });
+
+        if (showMoreBtn) {
+            showMoreBtn.style.display = 'inline-block';
+        }
+    }
+});
+
+// Export functionality
+function exportData(format) {
+    if (format === 'csv') {
+        window.location.href = '{% url "export_survey_csv" %}';
+    } else if (format === 'excel') {
+        window.location.href = '{% url "export_survey_excel" %}';
+    } else if (format === 'pdf') {
+        window.location.href = '{% url "export_team_overview_pdf" %}';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,656 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load analyzer_filters %}
+
+{% block title %}{{ client_name }} | Client Detail | Vermeg Analysis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metric-card {
+        transition: transform 0.2s;
+        border-left: 4px solid var(--primary);
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        white-space: nowrap;
+    }
+    .metric-label {
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+    }
+    .chart-container {
+        height: 300px;
+        margin-bottom: 20px;
+    }
+
+    /* Ensure chart titles are visible */
+    .card-header h5 {
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+    .trend-indicator {
+        font-size: 1.2rem;
+        margin-left: 5px;
+    }
+    .trend-up {
+        color: #28a745;
+    }
+    .trend-down {
+        color: #dc3545;
+    }
+    .trend-neutral {
+        color: #6c757d;
+    }
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 20px;
+        border-left: 2px solid var(--primary);
+    }
+    .timeline-date {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    .timeline-content {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+    }
+    .timeline-dot {
+        position: absolute;
+        left: -10px;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        background-color: var(--primary);
+        border-radius: 50%;
+    }
+    .sentiment-positive {
+        color: #28a745;
+    }
+    .sentiment-neutral {
+        color: #6c757d;
+    }
+    .sentiment-uncomfortable {
+        color: #ffc107;
+    }
+    .sentiment-annoyed {
+        color: #fd7e14;
+    }
+    .sentiment-frustrated {
+        color: #dc3545;
+    }
+    .sentiment-very-frustrated {
+        color: #990000;
+    }
+    .sentiment-negative {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page header -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 5px; height: 25px; background-color: var(--primary);"></div>
+                <h1 class="fw-bold mb-0">{{ client_name }}</h1>
+            </div>
+            <p class="text-secondary mt-2 mb-0">Client metrics and performance over time</p>
+        </div>
+        <a href="{% url 'client_overview' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Overview
+        </a>
+    </div>
+
+    {% if has_data %}
+        <!-- Latest Metrics Summary -->
+        {% with latest=metrics_over_time|last %}
+        <div class="row g-4 mb-4">
+            <!-- Sentiment Card -->
+            <div class="col-md-3">
+                <div class="card metric-card shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            {% if latest.sentiment > 0.3 %}
+                                <i class="fas fa-smile fa-3x text-success"></i>
+                            {% elif latest.sentiment >= 0 %}
+                                <i class="fas fa-meh fa-3x text-secondary"></i>
+                            {% elif latest.sentiment >= -0.2 %}
+                                <i class="fas fa-meh-rolling-eyes fa-3x text-warning"></i>
+                            {% elif latest.sentiment >= -0.5 %}
+                                <i class="fas fa-angry fa-3x" style="color: #fd7e14;"></i>
+                            {% elif latest.sentiment >= -0.8 %}
+                                <i class="fas fa-frown fa-3x text-danger"></i>
+                            {% else %}
+                                <i class="fas fa-dizzy fa-3x" style="color: #990000;"></i>
+                            {% endif %}
+                        </div>
+                        <div class="metric-value
+                            {% if latest.sentiment > 0.3 %}sentiment-positive
+                            {% elif latest.sentiment >= 0 %}sentiment-neutral
+                            {% elif latest.sentiment >= -0.2 %}sentiment-uncomfortable
+                            {% elif latest.sentiment >= -0.5 %}sentiment-annoyed
+                            {% elif latest.sentiment >= -0.8 %}sentiment-frustrated
+                            {% else %}sentiment-very-frustrated{% endif %}">
+                            {% if latest.sentiment > 0.3 %}Positive
+                            {% elif latest.sentiment >= 0 %}Neutral
+                            {% elif latest.sentiment >= -0.2 %}Uncomfortable
+                            {% elif latest.sentiment >= -0.5 %}Annoyed
+                            {% elif latest.sentiment >= -0.8 %}Frustrated
+                            {% else %}Very Frustrated{% endif %}
+                        </div>
+                        <div class="metric-label">Current Sentiment</div>
+                        <div class="small text-muted mt-2">Score: {{ latest.sentiment|floatformat:2 }}</div>
+
+                        {% if trends %}
+                            <div class="mt-3">
+                                {% if trends.sentiment_change > 0.1 %}
+                                    <span class="badge bg-success">Improving <i class="fas fa-arrow-up"></i></span>
+                                {% elif trends.sentiment_change < -0.1 %}
+                                    <span class="badge bg-danger">Declining <i class="fas fa-arrow-down"></i></span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Stable <i class="fas fa-equals"></i></span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resolution Time Card -->
+            <div class="col-md-3">
+                <div class="card metric-card shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-clock fa-3x text-primary"></i>
+                        </div>
+                        <div class="metric-value">{{ latest.resolution_time|floatformat:1 }}</div>
+                        <div class="metric-label">Avg Resolution Time</div>
+                        <div class="small text-muted mt-2">Days</div>
+
+                        {% if trends %}
+                            <div class="mt-3">
+                                {% if trends.resolution_time_change < -0.5 %}
+                                    <span class="badge bg-success">Faster <i class="fas fa-arrow-down"></i></span>
+                                {% elif trends.resolution_time_change > 0.5 %}
+                                    <span class="badge bg-danger">Slower <i class="fas fa-arrow-up"></i></span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Stable <i class="fas fa-equals"></i></span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Impact Card -->
+            <div class="col-md-3">
+                <div class="card metric-card shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-chart-line fa-3x text-primary"></i>
+                        </div>
+                        <div class="metric-value">
+                            {{ latest.client_impact|floatformat:2 }}
+                        </div>
+                        <div class="metric-label">Customer Experience Score</div>
+                        <div class="small text-muted mt-2">Score</div>
+
+                        {% if trends %}
+                            <div class="mt-3">
+                                {% if trends.client_impact_change > 0.1 %}
+                                    <span class="badge bg-danger">Declining <i class="fas fa-arrow-up"></i></span>
+                                {% elif trends.client_impact_change < -0.1 %}
+                                    <span class="badge bg-success">Improving <i class="fas fa-arrow-down"></i></span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Stable <i class="fas fa-equals"></i></span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tickets Card -->
+            <div class="col-md-3">
+                <div class="card metric-card shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-ticket-alt fa-3x text-primary"></i>
+                        </div>
+                        <div class="metric-value">{{ latest.tickets|floatformat:0 }}</div>
+                        <div class="metric-label">Total Tickets</div>
+                        <div class="small text-muted mt-2">Latest Analysis</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+
+        <!-- Metrics Charts -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Sentiment Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="sentimentTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Resolution Time Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="resolutionTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Customer Experience Score Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="impactTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Client Tickets Type</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="ticketTypesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature 2: Notes Section (moved above Analysis Timeline) -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-sticky-note text-warning me-2"></i>Client Notes
+                </h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="toggleNotesSection()">
+                    <i class="fas fa-chevron-down" id="notesChevron"></i>
+                </button>
+            </div>
+            <div class="card-body" id="notesSection" style="display: none;">
+                <div class="mb-3">
+                    <textarea class="form-control" id="clientNoteText" rows="4"
+                              placeholder="Add notes about this client's issues, situations, or important information..."></textarea>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted" id="noteLastUpdated"></small>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary me-2" onclick="clearNote()">
+                            <i class="fas fa-trash me-1"></i>Clear
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="saveNote()">
+                            <i class="fas fa-save me-1"></i>Save Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Timeline -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0">Analysis Timeline</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for metric in metrics_over_time reversed %}
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">{{ metric.date }}</div>
+                        <div class="timeline-content">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Metrics Summary</h6>
+                                    <ul class="list-unstyled">
+                                        <li>
+                                            <strong>Sentiment:</strong>
+                                            <span class="
+                                                {% if metric.sentiment > 0.3 %}text-success
+                                                {% elif metric.sentiment >= 0 %}text-secondary
+                                                {% elif metric.sentiment >= -0.2 %}text-warning
+                                                {% elif metric.sentiment >= -0.5 %}" style="color: #fd7e14;
+                                                {% elif metric.sentiment >= -0.8 %}text-danger
+                                                {% else %}" style="color: #990000;{% endif %}">
+                                                {% if metric.sentiment > 0.3 %}Positive
+                                                {% elif metric.sentiment >= 0 %}Neutral
+                                                {% elif metric.sentiment >= -0.2 %}Uncomfortable
+                                                {% elif metric.sentiment >= -0.5 %}Annoyed
+                                                {% elif metric.sentiment >= -0.8 %}Frustrated
+                                                {% else %}Very Frustrated{% endif %}
+                                                ({{ metric.sentiment|floatformat:2 }})
+                                            </span>
+                                        </li>
+                                        <li><strong>Resolution Time:</strong> {{ metric.resolution_time|floatformat:1 }} days</li>
+                                        <li><strong>Customer Experience Score:</strong>
+                                            {{ metric.client_impact|floatformat:2 }}
+                                        </li>
+                                        <li><strong>Tickets:</strong> {{ metric.tickets|floatformat:0 }}</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Analysis Details</h6>
+                                    <p class="mb-1">
+                                        <strong>File:</strong> {{ metric.file_name|truncatechars:30 }}
+                                    </p>
+                                    <a href="{% url 'view_analysis' analysis_id=metric.analysis_id %}" class="btn btn-sm btn-outline-danger mt-2">
+                                        <i class="fas fa-chart-bar me-1"></i> View Full Analysis
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+
+    {% else %}
+        <!-- Empty state -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <img src="{% static 'images/data-flow-image.png' %}" alt="No Data" class="img-fluid rounded-3 shadow" style="max-height: 200px;">
+                </div>
+                <h3 class="fw-bold mb-3">No Data Available for {{ client_name }}</h3>
+                <p class="text-secondary mb-4">There is no analysis data available for this client.</p>
+                <a href="{% url 'client_overview' %}" class="btn btn-danger">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Client Overview
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if has_data %}
+        // Chart configuration
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        };
+
+        // Get metrics data from context
+        const metricsData = {{ metrics_json|safe }};
+
+        // Prepare data for charts
+        const dates = metricsData.map(item => item.date);
+        const sentimentData = metricsData.map(item => item.sentiment);
+        const resolutionData = metricsData.map(item => item.resolution_time);
+        const impactData = metricsData.map(item => item.client_impact);
+
+        // Create sentiment trend chart
+        const sentimentCtx = document.getElementById('sentimentTrendChart').getContext('2d');
+        new Chart(sentimentCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Sentiment',
+                    data: sentimentData,
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#4e73df',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Sentiment Score'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Create resolution time trend chart
+        const resolutionCtx = document.getElementById('resolutionTrendChart').getContext('2d');
+        new Chart(resolutionCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Resolution Time (Days)',
+                    data: resolutionData,
+                    borderColor: '#e74a3b',
+                    backgroundColor: 'rgba(231, 74, 59, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#e74a3b',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Days'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Create client impact trend chart
+        const impactCtx = document.getElementById('impactTrendChart').getContext('2d');
+        new Chart(impactCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Customer Experience Score',
+                    data: impactData,
+                    borderColor: '#1cc88a',
+                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#1cc88a',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Experience Score'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Create ticket types chart
+        const ticketTypesData = {{ ticket_types_json|safe }};
+        const ticketTypesCtx = document.getElementById('ticketTypesChart').getContext('2d');
+
+        // Define chart colors
+        const chartColors = [
+            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+            '#5a5c69', '#858796', '#6610f2', '#6f42c1', '#fd7e14'
+        ];
+
+        new Chart(ticketTypesCtx, {
+            type: 'pie',
+            data: {
+                labels: Object.keys(ticketTypesData),
+                datasets: [{
+                    data: Object.values(ticketTypesData),
+                    backgroundColor: chartColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                ...chartOptions,
+                plugins: {
+                    ...chartOptions.plugins,
+                    legend: {
+                        display: true,
+                        position: 'right'
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        // Feature 2: Notes functionality
+        loadClientNote();
+    });
+
+    // Notes section toggle
+    function toggleNotesSection() {
+        const notesSection = document.getElementById('notesSection');
+        const chevron = document.getElementById('notesChevron');
+
+        if (notesSection.style.display === 'none') {
+            notesSection.style.display = 'block';
+            chevron.classList.remove('fa-chevron-down');
+            chevron.classList.add('fa-chevron-up');
+        } else {
+            notesSection.style.display = 'none';
+            chevron.classList.remove('fa-chevron-up');
+            chevron.classList.add('fa-chevron-down');
+        }
+    }
+
+    // Load existing note for this client
+    function loadClientNote() {
+        const clientName = '{{ client_name|escapejs }}';
+
+        fetch(`/client-note/${encodeURIComponent(clientName)}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('clientNoteText').value = data.note_text || '';
+                    if (data.updated_at) {
+                        document.getElementById('noteLastUpdated').textContent = `Last updated: ${data.updated_at}`;
+                    } else {
+                        document.getElementById('noteLastUpdated').textContent = '';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading note:', error);
+            });
+    }
+
+    // Save note
+    function saveNote() {
+        const clientName = '{{ client_name|escapejs }}';
+        const noteText = document.getElementById('clientNoteText').value;
+
+        const formData = new FormData();
+        formData.append('note_text', noteText);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch(`/client-note/${encodeURIComponent(clientName)}/save/`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.updated_at) {
+                    document.getElementById('noteLastUpdated').textContent = `Last updated: ${data.updated_at}`;
+                }
+                // Show success message
+                showMessage('Note saved successfully!', 'success');
+            } else {
+                showMessage('Error saving note: ' + (data.error || 'Unknown error'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error saving note:', error);
+            showMessage('Error saving note. Please try again.', 'error');
+        });
+    }
+
+    // Clear note
+    function clearNote() {
+        if (confirm('Are you sure you want to clear this note?')) {
+            document.getElementById('clientNoteText').value = '';
+            saveNote(); // This will delete the note since it's empty
+        }
+    }
+
+    // Show message helper
+    function showMessage(message, type) {
+        // Create a temporary alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        // Insert at the top of the page
+        const container = document.querySelector('.container-fluid');
+        container.insertBefore(alertDiv, container.firstChild);
+
+        // Auto-dismiss after 3 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 3000);
+    }
+</script>
+{% endblock %}

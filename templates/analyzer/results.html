@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analysis Results | Vermeg Analysis{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Analysis Results</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">File Details</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Filename:</strong> {{ jira_file.file.name|truncatechars:40 }}</p>
+                <p><strong>Uploaded:</strong> {{ jira_file.uploaded_at|date:"F j, Y, g:i a" }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>File Type:</strong> {{ jira_file.get_file_type_display }}</p>
+                <p><strong>Total Issues:</strong> {{ analysis.issue_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Ticket Types Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Ticket Types</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="ticketTypesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Priority Distribution Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Priority Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Distribution Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Status Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Common Themes Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Enhanced Themes Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="themesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Chart configurations
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        };
+
+        // Common chart colors
+        const chartColors = [
+            'rgba(54, 162, 235, 0.8)',
+            'rgba(255, 99, 132, 0.8)',
+            'rgba(75, 192, 192, 0.8)',
+            'rgba(255, 159, 64, 0.8)',
+            'rgba(153, 102, 255, 0.8)',
+            'rgba(255, 205, 86, 0.8)',
+            'rgba(201, 203, 207, 0.8)'
+        ];
+
+        // Ticket Types Chart
+        const ticketTypeData = {{ analysis.ticket_types|safe }};
+        new Chart(
+            document.getElementById('ticketTypesChart'),
+            {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(ticketTypeData),
+                    datasets: [{
+                        data: Object.values(ticketTypeData),
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            }
+        );
+
+        // Priority Chart
+        const priorityData = {{ analysis.priority_distribution|safe }};
+        new Chart(
+            document.getElementById('priorityChart'),
+            {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(priorityData),
+                    datasets: [{
+                        label: 'Priority Distribution',
+                        data: Object.values(priorityData),
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            }
+        );
+
+        // Status Chart
+        const statusData = {{ analysis.status_distribution|safe }};
+        new Chart(
+            document.getElementById('statusChart'),
+            {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusData),
+                    datasets: [{
+                        data: Object.values(statusData),
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            }
+        );
+
+        // Enhanced Themes Chart with improved visualization
+        const themesData = {{ analysis.common_themes|safe }};
+        new Chart(
+            document.getElementById('themesChart'),
+            {
+                type: 'radar',
+                data: {
+                    labels: Object.keys(themesData),
+                    datasets: [{
+                        label: 'Theme Relevance',
+                        data: Object.values(themesData),
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            ticks: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    return `${label}: ${value}% relevance`;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    });
+</script>
+{% endblock %}

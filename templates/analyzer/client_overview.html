@@ -1,0 +1,845 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load analyzer_filters %}
+
+{% block title %}Client Overview | Vermeg Insights{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Card styling */
+    .client-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 8px;
+        overflow: hidden;
+        height: 100%;
+    }
+    .client-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Health indicator styling */
+    .health-indicator {
+        width: 100%;
+        height: 8px;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    .health-excellent {
+        background-color: #28a745;
+    }
+    .health-good {
+        background-color: #20c997;
+    }
+    .health-fair {
+        background-color: #ffc107;
+    }
+    .health-poor {
+        background-color: #fd7e14;
+    }
+    .health-critical {
+        background-color: #dc3545;
+    }
+
+    /* Metric styling */
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .metric-label {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Client name styling */
+    .client-name {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 8px;
+    }
+
+    /* Trend indicators */
+    .trend-indicator {
+        font-size: 0.9rem;
+        margin-left: 5px;
+    }
+    .trend-up {
+        color: #28a745;
+    }
+    .trend-down {
+        color: #dc3545;
+    }
+    .trend-neutral {
+        color: #6c757d;
+    }
+
+    /* Chart container */
+    .chart-container {
+        height: 300px;
+        margin-bottom: 20px;
+    }
+
+    /* Sentiment colors */
+    .sentiment-positive {
+        color: #28a745;
+    }
+    .sentiment-neutral {
+        color: #6c757d;
+    }
+    .sentiment-uncomfortable {
+        color: #ffc107;
+    }
+    .sentiment-annoyed {
+        color: #fd7e14;
+    }
+    .sentiment-frustrated {
+        color: #dc3545;
+    }
+    .sentiment-very-frustrated {
+        color: #990000;
+    }
+    .sentiment-negative {
+        color: #dc3545;
+    }
+
+    /* Filter and sort controls */
+    .filter-controls {
+        background-color: var(--gray-light);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .sort-btn {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        background-color: var(--white);
+        border: 1px solid var(--gray-medium);
+        color: var(--text-dark);
+    }
+
+    .sort-btn.active {
+        background-color: var(--dark);
+        color: var(--white);
+        border-color: var(--dark);
+    }
+
+    /* Key metrics summary */
+    .key-metrics-summary {
+        margin-bottom: 20px;
+    }
+
+    .metric-card {
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        background-color: var(--white);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .metric-card i {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: var(--primary);
+    }
+
+    .metric-card .metric-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        white-space: nowrap;
+    }
+
+    /* Client card badge */
+    .client-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+
+    /* Recent Changes Section */
+    .recent-changes-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .recent-changes-header {
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.3s ease;
+    }
+
+    .recent-changes-header:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 8px;
+        margin: -8px;
+    }
+
+    .chevron-icon {
+        transition: transform 0.3s ease;
+        font-size: 1.2rem;
+        margin-left: 10px;
+    }
+
+    .chevron-icon.collapsed {
+        transform: rotate(-90deg);
+    }
+
+    .recent-changes-content {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .recent-changes-content.collapsed {
+        max-height: 0;
+        opacity: 0;
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+    .recent-changes-content:not(.collapsed) {
+        max-height: 2000px;
+        opacity: 1;
+        margin-top: 15px;
+    }
+
+    .recent-changes-table {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .recent-changes-table th {
+        background-color: #495057;
+        color: white;
+        font-weight: 600;
+        text-align: center;
+        padding: 12px 8px;
+        border: none;
+        font-size: 0.9rem;
+    }
+
+    .recent-changes-table td {
+        text-align: center;
+        padding: 10px 8px;
+        border-bottom: 1px solid #f1f3f4;
+        vertical-align: middle;
+    }
+
+    .recent-changes-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .client-name-cell {
+        text-align: left !important;
+        font-weight: 600;
+        color: #495057;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .trend-indicator-cell {
+        font-size: 1.2rem;
+        min-width: 80px;
+    }
+
+    .trend-value {
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-top: 2px;
+    }
+
+    .trend-extreme {
+        color: #dc3545;
+    }
+
+    .trend-negative {
+        color: #fd7e14;
+    }
+
+    .trend-positive {
+        color: #28a745;
+    }
+
+    .trend-minimal {
+        color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+        .recent-changes-table th,
+        .recent-changes-table td {
+            padding: 8px 4px;
+            font-size: 0.8rem;
+        }
+
+        .trend-indicator-cell {
+            font-size: 1rem;
+            min-width: 60px;
+        }
+
+        .client-name-cell {
+            max-width: 100px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page header -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="width: 5px; height: 25px; background-color: var(--primary);"></div>
+                <h1 class="fw-bold mb-0">Client Overview</h1>
+            </div>
+            <p class="text-secondary mt-2 mb-0">Track client metrics and performance over time</p>
+        </div>
+        <!-- Feature 1: Export buttons -->
+        {% if has_data %}
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-download me-2"></i>Export
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                <li><a class="dropdown-item" href="{% url 'export_csv' %}">
+                    <i class="fas fa-file-csv me-2"></i>Export as CSV
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'export_excel' %}">
+                    <i class="fas fa-file-excel me-2"></i>Export as Excel
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'export_pdf' %}">
+                    <i class="fas fa-file-pdf me-2"></i>Export as PDF
+                </a></li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if has_data %}
+        <!-- Key Metrics Summary -->
+        <div class="row key-metrics-summary g-4 mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-users"></i>
+                    <div class="metric-value">{{ all_clients|length }}</div>
+                    <div class="metric-label">Total Clients</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-ticket-alt"></i>
+                    <div class="metric-value">
+                        {{ total_tickets|floatformat:0 }}
+                    </div>
+                    <div class="metric-label">Total Tickets</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-clock"></i>
+                    <div class="metric-value">
+                        {{ avg_resolution_time|floatformat:1 }}
+                    </div>
+                    <div class="metric-label">Avg Resolution Time (Days)</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-chart-line"></i>
+                    <div class="metric-value">
+                        {{ avg_client_impact|floatformat:2 }}
+                    </div>
+                    <div class="metric-label">Avg Customer Experience Score</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Changes Section -->
+        {% if client_trends %}
+        <div class="recent-changes-section">
+            <div class="recent-changes-header d-flex align-items-center justify-content-between" onclick="toggleRecentChanges()">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-chart-line text-primary me-2" style="font-size: 1.5rem;"></i>
+                    <h4 class="mb-0 fw-bold">Recent Changes</h4>
+                    <span class="badge bg-secondary ms-2">{{ client_trends|length }} client{{ client_trends|length|pluralize }} with trend data</span>
+                </div>
+                <i class="fas fa-chevron-down chevron-icon collapsed" id="recentChangesChevron"></i>
+            </div>
+
+            <div class="recent-changes-content collapsed" id="recentChangesContent">
+                <p class="text-muted mb-3">Track how your clients' metrics are trending compared to previous analyses</p>
+
+            <div class="table-responsive">
+                <table class="table table-sm recent-changes-table mb-0">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Client</th>
+                            <th>Experience Impact</th>
+                            <th>Resolution Time</th>
+                            <th>Sentiment</th>
+                            <th>Tickets</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in all_clients %}
+                            {% if client in client_trends %}
+                            {% with trends=client_trends|get_item:client %}
+                            <tr>
+                                <td class="client-name-cell">
+                                    <a href="{% url 'client_detail' client_name=client %}" class="text-decoration-none">
+                                        {{ client }}
+                                    </a>
+                                </td>
+
+                                <!-- Experience Impact (Customer Experience Score) Trend -->
+                                <td class="trend-indicator-cell">
+                                    {% with change=trends.client_impact_change %}
+                                    {% if change > 0.1 %}
+                                        <span class="trend-extreme">⚠️</span>
+                                        <div class="trend-value trend-extreme">+{{ change|floatformat:2 }}</div>
+                                    {% elif change < -0.1 %}
+                                        <span class="trend-extreme">✅</span>
+                                        <div class="trend-value trend-extreme">{{ change|floatformat:2 }}</div>
+                                    {% elif change > 0.03 %}
+                                        <span class="trend-negative">🔴</span>
+                                        <div class="trend-value trend-negative">+{{ change|floatformat:2 }}</div>
+                                    {% elif change < -0.03 %}
+                                        <span class="trend-positive">🟢</span>
+                                        <div class="trend-value trend-positive">{{ change|floatformat:2 }}</div>
+                                    {% else %}
+                                        <span class="trend-minimal">⚪️</span>
+                                        <div class="trend-value trend-minimal">{{ change|floatformat:2 }}</div>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                <!-- Resolution Time Trend -->
+                                <td class="trend-indicator-cell">
+                                    {% with change=trends.resolution_time_change %}
+                                    {% if change > 2.0 %}
+                                        <span class="trend-extreme">⚠️</span>
+                                        <div class="trend-value trend-extreme">+{{ change|floatformat:1 }}d</div>
+                                    {% elif change < -2.0 %}
+                                        <span class="trend-extreme">✅</span>
+                                        <div class="trend-value trend-extreme">{{ change|floatformat:1 }}d</div>
+                                    {% elif change > 0.5 %}
+                                        <span class="trend-negative">🔴</span>
+                                        <div class="trend-value trend-negative">+{{ change|floatformat:1 }}d</div>
+                                    {% elif change < -0.5 %}
+                                        <span class="trend-positive">🟢</span>
+                                        <div class="trend-value trend-positive">{{ change|floatformat:1 }}d</div>
+                                    {% else %}
+                                        <span class="trend-minimal">⚪️</span>
+                                        <div class="trend-value trend-minimal">{{ change|floatformat:1 }}d</div>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                <!-- Sentiment Trend -->
+                                <td class="trend-indicator-cell">
+                                    {% with change=trends.sentiment_change %}
+                                    {% if change < -0.2 %}
+                                        <span class="trend-extreme">⚠️</span>
+                                        <div class="trend-value trend-extreme">{{ change|floatformat:2 }}</div>
+                                    {% elif change > 0.2 %}
+                                        <span class="trend-extreme">✅</span>
+                                        <div class="trend-value trend-extreme">+{{ change|floatformat:2 }}</div>
+                                    {% elif change < -0.05 %}
+                                        <span class="trend-negative">🔴</span>
+                                        <div class="trend-value trend-negative">{{ change|floatformat:2 }}</div>
+                                    {% elif change > 0.05 %}
+                                        <span class="trend-positive">🟢</span>
+                                        <div class="trend-value trend-positive">+{{ change|floatformat:2 }}</div>
+                                    {% else %}
+                                        <span class="trend-minimal">⚪️</span>
+                                        <div class="trend-value trend-minimal">{{ change|floatformat:2 }}</div>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                <!-- Ticket Backlog Trend -->
+                                <td class="trend-indicator-cell">
+                                    {% with change=trends.tickets_change %}
+                                    {% if change > 20 %}
+                                        <span class="trend-extreme">⚠️</span>
+                                        <div class="trend-value trend-extreme">+{{ change|floatformat:0 }}</div>
+                                    {% elif change < -20 %}
+                                        <span class="trend-extreme">✅</span>
+                                        <div class="trend-value trend-extreme">{{ change|floatformat:0 }}</div>
+                                    {% elif change > 5 %}
+                                        <span class="trend-negative">🔴</span>
+                                        <div class="trend-value trend-negative">+{{ change|floatformat:0 }}</div>
+                                    {% elif change < -5 %}
+                                        <span class="trend-positive">🟢</span>
+                                        <div class="trend-value trend-positive">{{ change|floatformat:0 }}</div>
+                                    {% else %}
+                                        <span class="trend-minimal">⚪️</span>
+                                        <div class="trend-value trend-minimal">{{ change|floatformat:0 }}</div>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                            {% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-3">
+                <small class="text-muted">
+                    <strong>Legend:</strong>
+                    ⚠️ Extreme negative change (>10% or significant threshold) •
+                    ✅ Extreme positive change (>10% or significant threshold) •
+                    🔴 Negative change (3-10% worse) •
+                    🟢 Positive change (3-10% better) •
+                    ⚪️ Minimal change (<3%)
+                </small>
+            </div>
+            </div> <!-- Close recent-changes-content -->
+        </div>
+        {% endif %}
+
+        <!-- Filter and Sort Controls -->
+        <div class="filter-controls mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Sort By</h5>
+                    <div class="d-flex flex-wrap">
+                        <button class="sort-btn active" data-sort="latest">
+                            <i class="fas fa-clock me-1"></i> Latest Updates
+                        </button>
+                        <button class="sort-btn" data-sort="impact">
+                            <i class="fas fa-sort-amount-down me-1"></i> Experience Score
+                        </button>
+                        <button class="sort-btn" data-sort="sentiment">
+                            <i class="fas fa-smile me-1"></i> Sentiment
+                        </button>
+                        <button class="sort-btn" data-sort="resolution">
+                            <i class="fas fa-clock me-1"></i> Resolution Time
+                        </button>
+                        <button class="sort-btn" data-sort="tickets">
+                            <i class="fas fa-ticket-alt me-1"></i> Tickets
+                        </button>
+                        <button class="sort-btn" data-sort="name">
+                            <i class="fas fa-font me-1"></i> Name
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="mb-3">Filter</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <select class="form-select mb-2" id="sentimentFilter">
+                                <option value="all">All Sentiments</option>
+                                <option value="positive">Positive</option>
+                                <option value="neutral">Neutral</option>
+                                <option value="uncomfortable">Uncomfortable</option>
+                                <option value="annoyed">Annoyed</option>
+                                <option value="frustrated">Frustrated</option>
+                                <option value="very-frustrated">Very Frustrated</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select mb-2" id="ticketFilter">
+                                <option value="all">All Ticket Counts</option>
+                                <option value="1-10">1-10 Tickets</option>
+                                <option value="11-50">11-50 Tickets</option>
+                                <option value="51-100">51-100 Tickets</option>
+                                <option value="100+">100+ Tickets</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Cards Grid -->
+        <div class="row g-4 mb-5" id="clientGrid">
+            {% for client in all_clients %}
+                {% if client in latest_metrics %}
+                {% with sentiment=latest_metrics|get_item:client|get_item:'sentiment' resolution_time=latest_metrics|get_item:client|get_item:'resolution_time' client_impact=latest_metrics|get_item:client|get_item:'client_impact' tickets=latest_metrics|get_item:client|get_item:'tickets' date=latest_metrics|get_item:client|get_item:'date' %}
+                <div class="col-md-6 col-lg-4 client-card-container"
+                     data-client="{{ client }}"
+                     data-sentiment="{{ sentiment }}"
+                     data-resolution="{{ resolution_time }}"
+                     data-impact="{{ client_impact }}"
+                     data-tickets="{{ tickets }}"
+                     data-date="{{ date }}">
+                    <div class="card client-card shadow-sm">
+                        <!-- Health indicator bar -->
+                        {% if client_impact < 0.2 %}
+                            <div class="health-indicator health-excellent"></div>
+                            <div class="client-badge"><span class="badge bg-success">Excellent</span></div>
+                        {% elif client_impact < 0.3 %}
+                            <div class="health-indicator health-good"></div>
+                            <div class="client-badge"><span class="badge bg-info">Good</span></div>
+                        {% elif client_impact < 0.4 %}
+                            <div class="health-indicator health-fair"></div>
+                            <div class="client-badge"><span class="badge bg-warning">Fair</span></div>
+                        {% elif client_impact < 0.6 %}
+                            <div class="health-indicator health-poor"></div>
+                            <div class="client-badge"><span class="badge bg-orange" style="background-color: #fd7e14; color: white;">Poor</span></div>
+                        {% else %}
+                            <div class="health-indicator health-critical"></div>
+                            <div class="client-badge"><span class="badge bg-danger">Critical</span></div>
+                        {% endif %}
+
+                        <div class="card-body pt-4">
+                            <div class="text-center mb-3">
+                                <h5 class="client-name">{{ client }}</h5>
+                                <div class="mt-2">
+                                    {% if sentiment > 0.3 %}
+                                        <i class="fas fa-smile fa-2x text-success"></i>
+                                    {% elif sentiment >= 0 %}
+                                        <i class="fas fa-meh fa-2x text-secondary"></i>
+                                    {% elif sentiment >= -0.2 %}
+                                        <i class="fas fa-meh-rolling-eyes fa-2x text-warning"></i>
+                                    {% elif sentiment >= -0.5 %}
+                                        <i class="fas fa-angry fa-2x" style="color: #fd7e14;"></i>
+                                    {% elif sentiment >= -0.8 %}
+                                        <i class="fas fa-frown fa-2x text-danger"></i>
+                                    {% else %}
+                                        <i class="fas fa-dizzy fa-2x" style="color: #990000;"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <!-- Customer Experience Score -->
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded text-center">
+                                        <div class="metric-label">Experience Score</div>
+                                        <div class="metric-value">{{ client_impact|floatformat:2 }}</div>
+                                        {% if client in client_trends %}
+                                        <div class="small">
+                                            {% with trend=client_trends|get_item:client|get_item:'client_impact_change' %}
+                                            {% if trend > 0.1 %}
+                                            <span class="text-danger"><i class="fas fa-arrow-up"></i> {{ trend|floatformat:2 }}</span>
+                                            {% elif trend < -0.1 %}
+                                            <span class="text-success"><i class="fas fa-arrow-down"></i> {{ trend|absolute|floatformat:2 }}</span>
+                                            {% else %}
+                                            <span class="text-secondary"><i class="fas fa-equals"></i> Stable</span>
+                                            {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Resolution Time -->
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded text-center">
+                                        <div class="metric-label">Resolution Time</div>
+                                        <div class="metric-value">{{ resolution_time|floatformat:1 }}</div>
+                                        {% if client in client_trends %}
+                                        <div class="small">
+                                            {% with trend=client_trends|get_item:client|get_item:'resolution_time_change' %}
+                                            {% if trend < -0.5 %}
+                                            <span class="text-success"><i class="fas fa-arrow-down"></i> {{ trend|absolute|floatformat:1 }}</span>
+                                            {% elif trend > 0.5 %}
+                                            <span class="text-danger"><i class="fas fa-arrow-up"></i> {{ trend|floatformat:1 }}</span>
+                                            {% else %}
+                                            <span class="text-secondary"><i class="fas fa-equals"></i> Stable</span>
+                                            {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Tickets -->
+                                <div class="col-12">
+                                    <div class="p-2 bg-light rounded text-center">
+                                        <div class="metric-label">Total Tickets</div>
+                                        <div class="metric-value">{{ tickets|floatformat:0 }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-3">
+                                <a href="{% url 'client_detail' client_name=client %}" class="btn btn-danger">
+                                    <i class="fas fa-chart-line me-1"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endwith %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+
+
+    {% else %}
+        <!-- Empty state -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <img src="{% static 'images/data-flow-image.png' %}" alt="No Data" class="img-fluid rounded-3 shadow" style="max-height: 200px;">
+                </div>
+                <h3 class="fw-bold mb-3">No Client Data Available</h3>
+                <p class="text-secondary mb-4">Upload and process JIRA files to see client metrics and insights.</p>
+                <a href="{% url 'upload_file' %}" class="btn btn-danger btn-lg">
+                    <i class="fas fa-upload me-2"></i>Upload Your First File
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle Recent Changes section
+    function toggleRecentChanges() {
+        const content = document.getElementById('recentChangesContent');
+        const chevron = document.getElementById('recentChangesChevron');
+
+        if (content.classList.contains('collapsed')) {
+            content.classList.remove('collapsed');
+            chevron.classList.remove('collapsed');
+        } else {
+            content.classList.add('collapsed');
+            chevron.classList.add('collapsed');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if has_data %}
+        // Initialize sorting and filtering
+        initClientGrid();
+
+
+
+
+
+        // Initialize client grid sorting and filtering
+        function initClientGrid() {
+            const clientGrid = document.getElementById('clientGrid');
+            const sortButtons = document.querySelectorAll('.sort-btn');
+            const sentimentFilter = document.getElementById('sentimentFilter');
+            const ticketFilter = document.getElementById('ticketFilter');
+
+            // Sort function
+            function sortClients(sortBy) {
+                const clientCards = Array.from(document.querySelectorAll('.client-card-container'));
+
+                clientCards.sort((a, b) => {
+                    if (sortBy === 'name') {
+                        const nameA = a.getAttribute('data-client').toLowerCase();
+                        const nameB = b.getAttribute('data-client').toLowerCase();
+                        return nameA.localeCompare(nameB);
+                    } else if (sortBy === 'latest') {
+                        // Sort by date (newest first)
+                        const dateA = a.getAttribute('data-date') || '1900-01-01';
+                        const dateB = b.getAttribute('data-date') || '1900-01-01';
+                        return dateB.localeCompare(dateA); // Descending (newest first)
+                    } else {
+                        const valueA = parseFloat(a.getAttribute(`data-${sortBy}`));
+                        const valueB = parseFloat(b.getAttribute(`data-${sortBy}`));
+
+                        // For impact and sentiment, lower is better
+                        if (sortBy === 'impact' || sortBy === 'sentiment') {
+                            return valueB - valueA; // Descending
+                        }
+                        // For resolution, lower is better
+                        else if (sortBy === 'resolution') {
+                            return valueB - valueA; // Descending
+                        }
+                        // For tickets, higher is more significant
+                        else {
+                            return valueB - valueA; // Descending
+                        }
+                    }
+                });
+
+                // Reorder the DOM
+                clientCards.forEach(card => {
+                    clientGrid.appendChild(card);
+                });
+            }
+
+            // Filter function
+            function filterClients() {
+                const sentimentValue = sentimentFilter.value;
+                const ticketValue = ticketFilter.value;
+                const clientCards = document.querySelectorAll('.client-card-container');
+
+                clientCards.forEach(card => {
+                    const sentiment = parseFloat(card.getAttribute('data-sentiment'));
+                    const tickets = parseFloat(card.getAttribute('data-tickets'));
+
+                    let showBySentiment = true;
+                    let showByTickets = true;
+
+                    // Filter by sentiment
+                    if (sentimentValue !== 'all') {
+                        if (sentimentValue === 'positive' && sentiment <= 0.3) showBySentiment = false;
+                        else if (sentimentValue === 'neutral' && (sentiment < 0 || sentiment > 0.3)) showBySentiment = false;
+                        else if (sentimentValue === 'uncomfortable' && (sentiment < -0.2 || sentiment >= 0)) showBySentiment = false;
+                        else if (sentimentValue === 'annoyed' && (sentiment < -0.5 || sentiment >= -0.2)) showBySentiment = false;
+                        else if (sentimentValue === 'frustrated' && (sentiment < -0.8 || sentiment >= -0.5)) showBySentiment = false;
+                        else if (sentimentValue === 'very-frustrated' && sentiment >= -0.8) showBySentiment = false;
+                    }
+
+                    // Filter by tickets
+                    if (ticketValue !== 'all') {
+                        if (ticketValue === '1-10' && (tickets < 1 || tickets > 10)) showByTickets = false;
+                        else if (ticketValue === '11-50' && (tickets < 11 || tickets > 50)) showByTickets = false;
+                        else if (ticketValue === '51-100' && (tickets < 51 || tickets > 100)) showByTickets = false;
+                        else if (ticketValue === '100+' && tickets < 100) showByTickets = false;
+                    }
+
+                    // Show or hide based on combined filters
+                    if (showBySentiment && showByTickets) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            // Add event listeners to sort buttons
+            sortButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update active button
+                    sortButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Sort clients
+                    sortClients(this.getAttribute('data-sort'));
+                });
+            });
+
+            // Add event listeners to filters
+            sentimentFilter.addEventListener('change', filterClients);
+            ticketFilter.addEventListener('change', filterClients);
+
+            // Initial sort by latest (default)
+            sortClients('latest');
+        }
+        {% endif %}
+    });
+</script>
+{% endblock %}
